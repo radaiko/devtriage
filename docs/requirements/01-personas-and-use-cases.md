@@ -20,10 +20,12 @@ also keeps personal notes/todos.
 **Definition of success:** Starts the day in DevTriage, triages everything in a few
 minutes, and trusts that nothing assigned to them is missing.
 
-## Secondary persona — "The Self-Hoster"
+## Secondary persona — "The Privacy-Conscious Developer"
 
-A privacy-conscious developer who wants to run DevTriage on their own
-server/hardware, keep credentials local, and avoid sending data to third parties.
+A developer who is wary of handing personal data and access tokens to yet another
+SaaS. They value that DevTriage's server stores **no readable content**, that
+credentials stay on their devices, and that their data lives in storage they control
+(BYO) — so using the hosted service carries minimal exposure.
 
 > Team/manager personas are explicitly **out of scope** for the initial product
 > (see [Vision & Scope](00-vision-and-scope.md)).

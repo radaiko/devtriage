@@ -27,7 +27,7 @@ viewable and actionable on web, iOS, and Android.
 | G2 | Automatically surface action items hidden inside notes/ideas as todos. |
 | G3 | Collect everything **assigned to me** (issues, PRs, tasks) from GitHub and Jira into one inbox. |
 | G4 | Let the user triage all of it from a single, consistent view across devices. |
-| G5 | Respect user data ownership and minimize security/supply-chain risk. |
+| G5 | Respect user data ownership and minimize security/supply-chain risk — the hosted server stores **no** customer data. |
 
 ## Success criteria
 
@@ -44,8 +44,9 @@ viewable and actionable on web, iOS, and Android.
 - Auto-extraction of todos from notes/ideas.
 - Read collection of assigned items from GitHub and Jira into a unified inbox.
 - Triage actions over all items (prioritize, snooze, complete, group, search).
-- Web client + native iOS (Swift) and Android (Kotlin) clients.
-- Single-user / self-hostable deployment.
+- Web client + native iOS (Swift) and Android (Kotlin) clients, all **local-first**.
+- A **hosted multi-tenant service** (run by the project owner on a Hetzner VM) that
+  stores **no customer data**; cross-device sync via the user's **own storage (BYO)**.
 
 ## Out of scope (initially)
 
@@ -63,7 +64,9 @@ viewable and actionable on web, iOS, and Android.
    triage layer over them, not a replacement.
 3. **Minimal, auditable dependencies.** Security and supply-chain risk are first-class
    concerns (see [NFR-DEP](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep)).
-4. **The user owns their data and credentials.**
+4. **The user owns their data and credentials** — because data lives on their devices
+   and in storage they control, never on our server (see
+   [NFR-PRIV](04-non-functional-requirements.md#privacy--data-ownership-nfr-priv)).
 
 ## Related documents
 

@@ -59,8 +59,13 @@ Start here:
    [NFR-DEP](docs/requirements/04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
 2. **Native mobile.** Mobile clients are native: **Swift/SwiftUI** (iOS) and
    **Kotlin/Jetpack Compose** (Android) — not a cross-platform JS framework.
-3. **You own your data.** DevTriage is designed to be self-hostable; credentials and
-   synced content stay under the user's control.
+3. **The server stores no customer content.** DevTriage is a hosted service (run on a
+   Hetzner VM), but the server holds **no documents/notes/todos, tokens, or fetched
+   items** — at most **E2EE/opaque sync-coordination metadata** it cannot read. Clients
+   are **local-first**, content syncs through the user's **own storage (BYO)** with
+   client-side encryption, and GitHub/Jira are **polled client-side**. See
+   [NFR-PRIV](docs/requirements/04-non-functional-requirements.md#privacy--data-ownership-nfr-priv)
+   and [06 — Architecture](docs/requirements/06-architecture-and-tech-decisions.md).
 
 ## License
 

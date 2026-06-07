@@ -17,6 +17,11 @@ Shared vocabulary for DevTriage. Keep terms here consistent across all documents
 | **Local overlay** | User-applied metadata (tags, priority, snooze, notes) on an External item that does not modify the source. |
 | **Sync** | Pulling the latest external items from a source (scheduled or on-demand). |
 | **Write-back** | Sending changes from DevTriage back to a source (e.g. closing a GitHub issue). Out of initial scope. |
-| **Self-hosting** | Running the DevTriage backend on infrastructure the user controls. |
+| **Local-first** | Architecture where each client holds its own data and is the working source of truth, functioning offline and syncing later. |
+| **BYO storage (bring-your-own)** | The user's own storage backend (e.g. WebDAV, S3, a private Git repo, a cloud drive) that DevTriage clients sync content through. Content is encrypted client-side. |
+| **Storage adapter** | The client-side abstraction over a specific BYO storage backend. |
+| **Sync coordination (E2EE)** | Optional thin server-side layer holding only opaque/encrypted metadata (version pointers, change notifications, key-exchange) to speed sync — never readable content. |
+| **CORS proxy** | The stateless server component that forwards web-client requests to provider APIs that disallow browser-origin calls; stores nothing. |
+| **Hosted service** | DevTriage is operated by the project owner on a Hetzner VM (not self-hosted by end users), yet the server stores no customer content. |
 | **FR-* / NFR-*** | Functional / Non-functional requirement IDs used for traceability. |
 | **OQ-*** | Open question IDs in [09 — Open Questions](requirements/09-open-questions.md). |

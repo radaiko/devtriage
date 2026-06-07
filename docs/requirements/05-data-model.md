@@ -5,6 +5,16 @@ Concrete schema/storage decisions are deferred (see
 [06 — Architecture](06-architecture-and-tech-decisions.md) and
 [09 — Open Questions](09-open-questions.md)).
 
+## Where data lives (important)
+
+There is **no server-side database**. The entities below live:
+
+- in each client's **local store** (the working source of truth — local-first), and
+- synced through the user's **bring-your-own storage**, **encrypted client-side**.
+
+The hosted Hetzner server stores none of it. See
+[06 — Architecture](06-architecture-and-tech-decisions.md).
+
 ## Core entities
 
 ### User
@@ -50,9 +60,20 @@ A label applied across todos, notes, ideas, and external-item overlays.
 - `id`, `name`.
 
 ### IntegrationConnection
-A configured link to an external system.
-- `id`, `source` (github | jira), `credential` (encrypted — NFR-SEC-1), `scope`
-  config (repos/orgs or projects/JQL), `last synced at`, `status`/last error.
+A configured link to an external system. Lives **on-device** (token in the platform
+secure store), optionally mirrored as client-encrypted data in BYO storage ([OQ-25](09-open-questions.md)).
+- `id`, `source` (github | jira), `credential` (on-device / encrypted — NFR-SEC-1),
+  `scope` config (repos/orgs or projects/JQL), `last synced at`, `status`/last error.
+
+### SyncState (E2EE coordination metadata — server-allowed)
+Lightweight per-user sync-coordination metadata that the hosted server **may** store to
+improve sync — strictly **E2EE/opaque, never document content**. See
+[06 — Architecture](06-architecture-and-tech-decisions.md) and [OQ-26](09-open-questions.md).
+- e.g. an opaque **version pointer / vector** per user, **change-notification cursors**
+  (to wake devices for near-real-time sync), and **encrypted key-exchange envelopes**
+  for onboarding new devices.
+- The server can read **none** of the underlying content; it sees ciphertext / opaque
+  counters only.
 
 ## Relationships (text view)
 

@@ -5,14 +5,21 @@ external systems. It expands on [`FR-INT`](02-functional-requirements.md#integra
 
 ## General model
 
-- Each integration is a **connector** that authenticates as the user and pulls items
-  on a schedule (and on demand).
-- Collected items are stored as **external items** (a read model) linked to a source.
-  DevTriage is a triage layer; the external system remains the source of truth
-  (see [05 — Data Model](05-data-model.md)).
+- Each integration is a **connector** that runs **client-side** (inside the web, iOS,
+  and Android apps), authenticates as the user, and pulls items on a schedule (and on
+  demand). **The hosted server never holds tokens or fetched items.**
+- **Mobile** apps call GitHub/Jira **directly**. The **web** app routes through the
+  stateless Hetzner **CORS proxy** where a provider disallows browser-origin calls; the
+  proxy forwards but does not store (see [OQ-8a](09-open-questions.md)).
+- Collected items are stored as **external items** (a read model) in the client's local
+  store and synced via the user's BYO storage. DevTriage is a triage layer; the external
+  system remains the source of truth (see [05 — Data Model](05-data-model.md)).
 - Connectors are **read-only** by default. Any write-back is a separate, explicitly
   opt-in capability (see open questions).
 - Sync is **incremental** where the source API allows, to respect rate limits.
+- **Background collection while the app is closed is limited** (especially on web),
+  since polling is client-side — an accepted trade-off of the "server stores nothing"
+  decision.
 
 ## Common requirements (all connectors)
 
@@ -101,4 +108,5 @@ priority, snooze, notes — without modifying the source (`FR-TRIAGE-7`).
 ## Open integration questions
 
 See [09 — Open Questions](09-open-questions.md): auth mechanism per source, whether
-to support write-back, polling vs webhooks, and self-hosted variants.
+to support write-back, and the web CORS / transient token pass-through question
+([OQ-8a](09-open-questions.md)).

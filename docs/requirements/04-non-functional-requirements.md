@@ -21,21 +21,27 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 
 | ID | Priority | Requirement |
 | --- | --- | --- |
-| NFR-SEC-1 | 🔴 | Integration credentials (GitHub/Jira tokens) are stored encrypted at rest. |
-| NFR-SEC-2 | 🔴 | Credentials and synced content are transmitted only over TLS. |
+| NFR-SEC-1 | 🔴 | Integration and BYO-storage credentials live only on-device (and, if synced, only as client-encrypted data in the user's BYO storage) — never on the DevTriage server. |
+| NFR-SEC-2 | 🔴 | All network traffic (provider APIs, CORS proxy, BYO storage) uses TLS. |
 | NFR-SEC-3 | 🔴 | On native mobile, sensitive secrets use the platform secure store (iOS Keychain, Android Keystore). |
-| NFR-SEC-4 | 🔴 | Credentials are never written to logs or committed to the repo. |
-| NFR-SEC-5 | 🟠 | Tokens can be revoked, and DevTriage requests least-privilege scopes. |
-| NFR-SEC-6 | 🟠 | Authentication to DevTriage itself follows current best practice (hashed credentials, session/token expiry). |
+| NFR-SEC-4 | 🔴 | The web CORS proxy handles tokens only in transit, never persisting or logging them (see [OQ-8a](09-open-questions.md)). |
+| NFR-SEC-5 | 🔴 | Content written to BYO storage is encrypted client-side; encryption keys never reach the DevTriage server (see [OQ-24](09-open-questions.md)). |
+| NFR-SEC-6 | 🟠 | Tokens can be revoked, and DevTriage requests least-privilege scopes. |
+| NFR-SEC-7 | 🟠 | The CORS proxy is protected against abuse (e.g. as an open relay) — mechanism is [OQ-22](09-open-questions.md). |
 
 ## Privacy & data ownership — `NFR-PRIV`
 
+> DevTriage is a **hosted service** (project owner's Hetzner VM), but is designed so the
+> **server never holds customer data**. Data lives on the user's devices and in their
+> own (BYO) storage.
+
 | ID | Priority | Requirement |
 | --- | --- | --- |
-| NFR-PRIV-1 | 🔴 | DevTriage is self-hostable; the user can run the backend under their own control. |
-| NFR-PRIV-2 | 🔴 | No user content is sent to third parties except the integrations the user explicitly connects. |
-| NFR-PRIV-3 | 🟠 | The user can export and delete all their data. |
-| NFR-PRIV-4 | 🟠 | Any optional AI/LLM-assisted features clearly disclose data flow and are opt-in (ties to FR-EXTRACT-7). |
+| NFR-PRIV-1 | 🔴 | The hosted server stores **no customer content** — no documents/notes/todos, no integration tokens, no fetched items. It **may** store only **E2EE/opaque sync-coordination metadata** it cannot read (see [06](06-architecture-and-tech-decisions.md), [OQ-26](09-open-questions.md)). A wiped server loses no readable user content. |
+| NFR-PRIV-2 | 🔴 | User content lives only on the user's devices and in the user's connected **BYO storage**, encrypted client-side so the storage provider cannot read it. |
+| NFR-PRIV-3 | 🔴 | No user content is sent to third parties except (a) the integrations the user explicitly connects and (b) the BYO storage the user chooses. |
+| NFR-PRIV-4 | 🟠 | The user can export and delete all their data; deletion is effective because nothing is retained server-side. |
+| NFR-PRIV-5 | 🟠 | Any optional AI/LLM-assisted features clearly disclose data flow and are opt-in (ties to FR-EXTRACT-7). |
 
 ## Performance — `NFR-PERF`
 
@@ -64,8 +70,9 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 
 | ID | Priority | Requirement |
 | --- | --- | --- |
-| NFR-PORT-1 | 🔴 | The backend is deployable as a self-contained unit on commodity hardware (single binary / container preferred). |
-| NFR-PORT-2 | 🟠 | Storage defaults to a simple, low-operations option suitable for single-user self-hosting. |
+| NFR-PORT-1 | 🔴 | The hosted server is a single, stateless, self-contained unit (single Go binary / container) deployable on one Hetzner VM. |
+| NFR-PORT-2 | 🔴 | Because the server is stateless, it can be redeployed or replaced without data migration or backup. |
+| NFR-PORT-3 | 🟠 | The BYO-storage adapter layer is pluggable so additional storage backends can be added without client rewrites (see [OQ-21](09-open-questions.md)). |
 
 ## Accessibility & UX — `NFR-A11Y`
 
@@ -79,7 +86,7 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | ID | Priority | Requirement |
 | --- | --- | --- |
 | NFR-OBS-1 | 🟠 | Backend logs sync activity and errors (without secrets) for troubleshooting. |
-| NFR-OBS-2 | 🟢 | Basic health/metrics endpoint for self-hosters. |
+| NFR-OBS-2 | 🟢 | Basic health/metrics endpoint for the service operator (no user content in metrics). |
 
 ## Maintainability — `NFR-MNT`
 

@@ -1,9 +1,8 @@
 # 06 — Architecture & Tech Decisions
 
-> **Status: PROPOSALS, not locked.** This document records candidate decisions with
-> rationale so we can debate them. Anything still undecided is tracked in
-> [09 — Open Questions](09-open-questions.md). Two constraints below are **firm**
-> because the project owner stated them explicitly.
+> **Status:** core shape now **decided** (see the Decided table). Remaining details are
+> tracked in [09 — Open Questions](09-open-questions.md). Items marked *proposed* are
+> still open.
 
 ## Firm constraints
 
@@ -11,118 +10,161 @@
    **Kotlin/Jetpack Compose**. No cross-platform JS runtimes (React Native, Flutter).
 2. **Minimal dependency surface** — avoid large third-party dependency trees,
    **especially npm**. See [NFR-DEP](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
+3. **The server stores no customer content.** DevTriage is operated as a hosted
+   service, but the server never persists documents, notes, todos, integration tokens,
+   or fetched items. It **may** store only **E2EE / opaque sync-coordination metadata**
+   (never readable content) where that improves the sync workflow.
+   See [NFR-PRIV](04-non-functional-requirements.md#privacy--data-ownership-nfr-priv).
 
 ## Decided
 
 | Decision | Choice | Date | Rationale (summary) |
 | --- | --- | --- | --- |
-| **Backend language** (OQ-1) | **Go** | 2026-06-07 | Std library covers HTTP server+client, JSON, crypto, `database/sql` → minimal deps (NFR-DEP); single static binary (NFR-PORT); goroutines fit I/O-bound integration polling. Rust would pull a larger async HTTP dep tree for an I/O-bound app; Kotlin would share a language with Android but lose the single-binary benefit. See details below. |
+| **Backend language** (OQ-1) | **Go** | 2026-06-07 | Std-lib covers HTTP server+client, JSON, crypto; single static binary; good concurrency. |
+| **Hosting model** (OQ-17) | **Hosted multi-tenant service on a Hetzner VM**, operated by the project owner. **Not** end-user self-hosted. | 2026-06-07 | Owner wants one service for everyone, without the burden of self-hosting. |
+| **Server data** (OQ-3, OQ-16) | **No customer content** — no documents/notes/todos, no tokens, no fetched items. **May** hold **E2EE/opaque sync-coordination metadata** only. | 2026-06-07 | Minimize liability/privacy exposure; allow a thin coordination layer if it improves sync, as long as content stays unreadable to the server. |
+| **Client architecture** | **Local-first.** Each client holds its own data and is the working source of truth. | 2026-06-07 | Required once the server holds no content. |
+| **Cross-device sync** | **Bring-your-own storage (BYO)** for content, **optionally coordinated** by a thin server-side E2EE sync service. | 2026-06-07 | Content travels through the user's own storage; the server may coordinate (change-notify / version / key-exchange) without reading content. |
+| **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
 
 ## High-level shape
 
 ```
-            ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-            │   Web client │   │  iOS (Swift) │   │ Android (Kt) │
-            └──────┬───────┘   └──────┬───────┘   └──────┬───────┘
-                   │                  │                  │
-                   └──────────  HTTPS / JSON API  ───────┘
-                                      │
-                              ┌───────▼────────┐
-                              │   Backend API  │
-                              │  (todos, notes,│
-                              │   extraction,  │
-                              │   triage)      │
-                              └───┬───────┬────┘
-                          sync    │       │   store
-                       ┌──────────▼─┐  ┌──▼───────────┐
-                       │ Connectors │  │   Database   │
-                       │ GitHub/Jira│  │  (embedded)  │
-                       └─────┬──────┘  └──────────────┘
-                             │
-                   external APIs (GitHub, Jira)
+        ┌──────────────────────────────────────────────────────────┐
+        │               Hetzner VM — thin Go service                 │
+        │  • serves the web client    • OAuth callback handling      │
+        │  • thin CORS proxy for web → GitHub/Jira (see notes)       │
+        │  • E2EE sync coordination (opaque version/notify/keys)     │
+        │  • holds NO content, NO tokens, NO fetched items           │
+        └───────▲───────────────────▲───────────────────▲───────────┘
+                │ static app / proxy │                   │
+        ┌───────┴──────┐    ┌────────┴─────┐    ┌────────┴─────┐
+        │  Web client  │    │ iOS (Swift)  │    │ Android (Kt) │   local-first
+        │ local store  │    │ local store  │    │ local store  │   (source of truth)
+        └──┬────────┬──┘    └──┬────────┬──┘    └──┬────────┬──┘
+           │        │          │        │          │        │
+   direct  │        │  sync     │       │  sync     │        │ direct API calls
+   API     │        ▼           ▼       ▼           ▼        │ (mobile: no proxy)
+   (mobile)│   ┌─────────────────────────────────────┐      │
+           │   │   User's OWN storage (BYO sync hub)  │      │
+           │   │  WebDAV / S3 / private Git / etc.    │      │
+           │   │   (encrypted by the client)         │      │
+           │   └─────────────────────────────────────┘      │
+           └───────────────► GitHub / Jira ◄────────────────┘
 ```
 
-A **shared backend API** is the single source of truth for the three clients
-(FR-SYNC-1). Connectors run server-side on a schedule and on demand.
+Two independent data flows, **neither of which touches our server's storage**:
 
-## Backend — **decided: Go** (OQ-1)
+1. **Sync flow** — clients read/write the user's own data (todos, notes, ideas,
+   overlays) to the **user's BYO storage**, encrypted client-side.
+2. **Integration flow** — clients poll **GitHub/Jira directly** with on-device tokens
+   (web routes through the stateless CORS proxy where the provider requires it).
 
-**Why Go:**
+## The server (Hetzner VM) — what it is and isn't
 
-- Compiles to a **single static binary** → trivial self-hosting (NFR-PORT-1).
-- **Strong standard library** (HTTP server, JSON, crypto) → very few third-party
-  deps, directly serving NFR-DEP. **No npm involved.**
-- Excellent **concurrency** for polling multiple integrations and respecting rate
-  limits (NFR-PERF-3, INT-COM-7).
-- Mature, well-audited GitHub/Jira client options (or thin hand-rolled HTTP clients
-  to keep deps minimal).
+**Is:** a small Go service that (a) serves the web client, (b) handles OAuth
+redirect/callback for connecting GitHub/Jira, (c) provides a thin CORS proxy so the
+**web** client can reach provider APIs that don't allow browser-origin calls, and (d)
+optionally runs a **thin E2EE sync-coordination layer** (see below).
 
-**Alternatives considered:** Rust (great safety/perf, but no stdlib HTTP → pulls an
-async dep tree, and steeper velocity for an I/O-bound app), Kotlin/JVM (would share a
-language with Android, but loses the single-binary benefit and needs a JVM/GraalVM),
-Python/FastAPI (more and heavier deps, not a single binary), Node/TS (rejected —
-conflicts with the npm dependency-avoidance constraint).
+**Is not:** a content store or a token vault. It persists **no documents, notes,
+todos, tokens, or fetched items** — only opaque sync-coordination metadata, if any. A
+wiped VM loses no user content; everything readable lives on devices and in the user's
+BYO storage.
 
-**Known caveat:** Go's `database/sql` needs a SQLite driver — either `mattn/go-sqlite3`
-(mature, requires cgo / a C toolchain) or `modernc.org/sqlite` (pure-Go, larger
-transpiled dependency). This is the one deliberate dependency the storage choice
-introduces; still well within [NFR-DEP](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
-The cgo-vs-pure-Go choice is deferred until implementation.
+> **Why Go is still the right pick:** even as a thin stateless host/proxy, Go's std-lib
+> HTTP server + single static binary + easy deployment on a single VM fit perfectly,
+> with essentially zero third-party dependencies (NFR-DEP).
 
-## Storage — proposed: **SQLite (embedded)**
+## Local-first clients
 
-- Single-file, zero-ops, ideal for single-user self-hosting (NFR-PORT-2).
-- Full-text search available for notes (FR-NOTE-5) without extra services.
-- Postgres remains an option for multi-user/scaled deployments later.
+Each client (web, iOS, Android) keeps a **local store** that is the working source of
+truth:
 
-## API — proposed: **REST/JSON over HTTPS**, versioned
+- **iOS:** local store (e.g. SQLite/GRDB or SwiftData); tokens in **Keychain**.
+- **Android:** local store (e.g. SQLite/Room); tokens in **Keystore**.
+- **Web:** browser local storage (e.g. IndexedDB). *Note:* a local-first web client is
+  inherently a client-side app, which is in tension with the earlier "server-rendered,
+  minimal-JS" leaning — see [OQ-2](09-open-questions.md).
 
-- Simple, language-agnostic — friendly to Swift/Kotlin/web clients.
-- Documented contract, versioned (NFR-MNT-2).
-- Real-time push (FR-SYNC-4) is a later enhancement; poll/refresh first.
+Clients work fully offline against the local store and reconcile via BYO storage when
+connectivity returns (NFR-OFF).
 
-## Web client — **decision needed (constraint-sensitive)**
+## Bring-your-own storage (BYO sync)
 
-The web client is where the npm-avoidance constraint bites hardest. Options:
+- A **storage adapter** abstracts the user's chosen backend behind one interface
+  (`read`, `write`, `list`, `delete` of encrypted objects).
+- Candidate backends (which to support first is [open](09-open-questions.md)): WebDAV,
+  S3-compatible object storage, a **private Git repo** (possibly reusing the GitHub
+  account the user already connects), and native cloud drives (iCloud Drive / Google
+  Drive).
+- **Client-side encryption:** data written to BYO storage is encrypted by the client so
+  the storage provider can't read it. Key management is an [open question](09-open-questions.md).
+- **Integration tokens** may also be kept (encrypted) in BYO storage so every device
+  can poll after a single connect — *proposed*, see open questions.
+- **Sync & conflicts:** local-first multi-device editing needs a conflict-resolution
+  strategy (CRDT vs last-write-wins vs per-field). [Open](09-open-questions.md).
 
-| Option | Dependency posture | Trade-off |
-| --- | --- | --- |
-| **Server-rendered (Go templates) + light HTML/CSS, optional htmx** | Lowest — little/no JS build chain or npm | Less app-like interactivity |
-| **Vanilla TypeScript, no framework, minimal/zero deps** | Low | More hand-written UI code |
-| **Small framework (e.g. Svelte/Vue) with a tightly-controlled, audited dep set** | Higher (build tooling pulls npm) | Better DX, conflicts with NFR-DEP-2 |
+## Sync coordination (server-side, E2EE — recommended)
 
-**Proposed default:** start server-rendered + progressive enhancement to honor
-NFR-DEP; revisit if interactivity needs grow. → see open questions.
+BYO storage alone works, but pure poll-the-bucket sync is slow and makes conflict
+ordering and new-device onboarding harder. A **thin, opaque coordination layer** on the
+Hetzner server materially improves the workflow **without the server reading any
+content**. It may hold, per user:
 
-## Mobile clients — firm
+- an **opaque version pointer / vector** so devices detect "is there anything new?"
+  cheaply and order changes (helps conflict resolution, [OQ-23](09-open-questions.md));
+- **change-notification cursors / wake signals** so a write on one device promptly
+  nudges the others (enables near-real-time sync — the practical form of `FR-SYNC-6`);
+- **encrypted key-exchange envelopes** to bootstrap a new device into the user's
+  encryption keys ([OQ-24](09-open-questions.md)).
 
-- **iOS:** Swift + SwiftUI; secrets in Keychain (NFR-SEC-3); offline capture
-  (NFR-OFF-1) via local store synced to the API.
-- **Android:** Kotlin + Jetpack Compose; secrets in Android Keystore; same offline
-  model.
-- Both consume the shared REST API; no shared business logic across native apps
-  beyond the API contract (keeps each native and idiomatic).
+Constraints on this layer:
 
-## Connector design
+- It stores **only ciphertext / opaque counters** — never documents, notes, todos,
+  tokens, or fetched items.
+- The actual content still flows through **BYO storage**; coordination metadata never
+  substitutes for it.
+- Minimize even *metadata* exposure (sizes, timing) where practical, and make it clear
+  what the server can and cannot infer ([OQ-26](09-open-questions.md)).
 
-- Each source (GitHub, Jira) is an isolated module implementing a common interface:
-  `authenticate`, `testConnection`, `resolveIdentity`, `sync(incremental)` →
-  normalized ExternalItems (NFR-MNT-1, FR-INT-12).
-- Prefer thin HTTP clients over heavy SDKs to keep dependencies minimal (NFR-DEP).
-- Scheduler triggers periodic sync; manual refresh hits the same path (INT-COM-4).
+## Integration collection (client-side)
+
+- Connectors run **inside each client**; the user's tokens never leave the device's
+  secure store (mobile) / browser (web).
+- **Mobile** apps call GitHub/Jira **directly**.
+- **Web** must contend with browser CORS: some provider endpoints allow browser-origin
+  calls, others (notably Jira) do not. Where needed, the web client routes through the
+  Hetzner **CORS proxy**, which **forwards but does not store** the request/token.
+  Whether transient token pass-through via the proxy is acceptable — and which
+  providers work direct vs proxied — is an [open question](09-open-questions.md).
+- Because polling is client-side, **background sync while the app is closed is limited**
+  (esp. web). This is an accepted trade-off of the "server stores nothing" decision.
+
+See [03 — Integration Requirements](03-integration-requirements.md) for item-level
+detail.
+
+## Auth / identity
+
+With no server-side storage, DevTriage may need **no accounts of its own**: a user's
+"identity" is their connected integrations plus their BYO storage. The open items are
+whether any login is needed at all and how to protect the CORS proxy from abuse — see
+[09 — Open Questions](09-open-questions.md).
 
 ## Security posture (summary)
 
-- Encrypt integration credentials at rest; never log them (NFR-SEC-1, NFR-SEC-4).
-- TLS everywhere (NFR-SEC-2); platform secure stores on mobile (NFR-SEC-3).
-- Pin and integrity-check every dependency (NFR-DEP-3); CI dependency scanning once
-  code begins (NFR-DEP-5).
+- Tokens live only on-device (Keychain/Keystore/browser) and, if synced, only as
+  **client-encrypted** data in the user's BYO storage (NFR-SEC-1/3).
+- The server never stores tokens or content; the web CORS proxy handles them only in
+  transit, over TLS (NFR-SEC-2/4).
+- Every dependency pinned and integrity-checked (NFR-DEP-3); CI dependency scanning
+  once code begins (NFR-DEP-5).
 
 ## What this buys us against the constraints
 
-- **npm avoided** in the backend entirely; minimized/optional on web.
-- **Native mobile** as required.
-- **Self-hostable single binary + single-file DB** for data ownership (NFR-PRIV-1).
+- **No customer data on the server** — minimal liability/privacy exposure.
+- **Native mobile** as required; **npm avoided** on the backend entirely.
+- **User owns their data** — it lives on their devices and in storage they control.
 
 > Open architectural decisions are consolidated in
 > [09 — Open Questions](09-open-questions.md).

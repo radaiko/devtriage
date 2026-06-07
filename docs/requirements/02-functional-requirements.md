@@ -46,9 +46,12 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 ## Integrations / assigned-item collection — `FR-INT`
 
 > Detailed behavior is specified in [03 — Integration Requirements](03-integration-requirements.md).
+> Collection is **client-side**: each app polls GitHub/Jira directly with tokens kept
+> on-device; the server never sees tokens or fetched items.
 
 | ID | Priority | Requirement |
 | --- | --- | --- |
+| FR-INT-0 | 🔴 | Integration polling happens **client-side**; tokens are stored on-device (and optionally in encrypted BYO storage — [OQ-25](09-open-questions.md)), never on the server. |
 | FR-INT-1 | 🔴 | The user can connect a GitHub account/credential. |
 | FR-INT-2 | 🔴 | The user can connect a Jira account/credential. |
 | FR-INT-3 | 🔴 | DevTriage collects GitHub **issues assigned to the user**. |
@@ -86,22 +89,30 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 
 ## Sync & multi-device — `FR-SYNC`
 
+> Architecture: clients are **local-first** and sync through the user's **own storage
+> (BYO)**; the hosted server stores no data. See
+> [06 — Architecture](06-architecture-and-tech-decisions.md).
+
 | ID | Priority | Requirement |
 | --- | --- | --- |
-| FR-SYNC-1 | 🔴 | Web, iOS, and Android clients operate on the same account data via a shared backend API. |
-| FR-SYNC-2 | 🔴 | Changes on one client become visible on others after sync. |
-| FR-SYNC-3 | 🟠 | Mobile clients support offline capture and reconcile when back online. |
-| FR-SYNC-4 | 🟢 | Real-time/push updates (vs poll-based) to clients. |
+| FR-SYNC-1 | 🔴 | Web, iOS, and Android clients share the user's data by syncing through the user's connected **bring-your-own storage** — **not** a server-side database. |
+| FR-SYNC-2 | 🔴 | Changes on one client become visible on others after a sync cycle through BYO storage. |
+| FR-SYNC-3 | 🔴 | All clients are local-first: they work offline against a local store and reconcile when connectivity returns. |
+| FR-SYNC-4 | 🔴 | Concurrent edits from multiple devices are merged deterministically with no silent data loss (strategy is [OQ-23](09-open-questions.md)). |
+| FR-SYNC-5 | 🔴 | Data written to BYO storage is **encrypted client-side** so the storage provider cannot read it ([NFR-SEC](04-non-functional-requirements.md), [OQ-24](09-open-questions.md)). |
+| FR-SYNC-6 | 🟠 | A thin **server-side E2EE sync-coordination** layer may provide change notifications, version coordination, and device key-exchange to speed up sync — storing **no readable content** ([06](06-architecture-and-tech-decisions.md), [OQ-26](09-open-questions.md)). |
+| FR-SYNC-7 | 🟢 | Full real-time/push updates building on FR-SYNC-6. |
 
 ## Settings, accounts & auth — `FR-SET`
 
 | ID | Priority | Requirement |
 | --- | --- | --- |
-| FR-SET-1 | 🔴 | The user can authenticate to DevTriage. |
+| FR-SET-1 | 🔴 | The user can connect a **bring-your-own storage** backend to enable cross-device sync, and test/disconnect it. |
 | FR-SET-2 | 🔴 | The user can add, test, and revoke external integration credentials. |
-| FR-SET-3 | 🔴 | Integration credentials are stored securely (see NFR-SEC). |
+| FR-SET-3 | 🔴 | Integration credentials and BYO-storage credentials are stored securely **on-device** (platform secure store) and never sent to the DevTriage server (see NFR-SEC). |
 | FR-SET-4 | 🟠 | The user can configure sync frequency and extraction mode. |
-| FR-SET-5 | 🟠 | The user can export their data. |
+| FR-SET-5 | 🟠 | The user can export their data (data already lives in their own storage, but a portable export is provided). |
+| FR-SET-6 | 🟠 | Whether any DevTriage-level login exists at all is [OQ-22](09-open-questions.md); if present, it must not require the server to store user content. |
 
 ## Traceability
 
