@@ -107,7 +107,7 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 
 | ID | Priority | Requirement |
 | --- | --- | --- |
-| FR-SET-0 | 🔴 | The user can **create an account and log in**. The account holds only minimal identity (id + auth identity + timestamps); it never stores user content (see [NFR-PRIV-1](04-non-functional-requirements.md)). Auth mechanism is [OQ-22a](09-open-questions.md). |
+| FR-SET-0 | 🔴 | The user can sign in **passwordlessly** via **passkey**, **Sign in with Google**, or **Sign in with GitHub**. There is **no password-based account creation**; the account is provisioned automatically on first sign-in. It holds only minimal identity (public key / provider subject id + timestamps) and never user content (see [NFR-PRIV-1](04-non-functional-requirements.md)). |
 | FR-SET-0a | 🔴 | The account/login flow **clearly explains why an account is required** — (1) to protect the shared CORS proxy from abuse, (2) to coordinate end-to-end-encrypted cross-device sync, and (3) for user-count metrics — and **reassures that no notes/todos/documents, tokens, or fetched items are stored on the server**. |
 | FR-SET-1 | 🔴 | The user can connect a **bring-your-own storage** backend to enable cross-device sync, and test/disconnect it. |
 | FR-SET-2 | 🔴 | The user can add, test, and revoke external integration credentials. |

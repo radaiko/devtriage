@@ -31,7 +31,8 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | NFR-SEC-4 | 🔴 | The web CORS proxy handles tokens only in transit, never persisting or logging them (see [OQ-8a](09-open-questions.md)). |
 | NFR-SEC-5 | 🔴 | Content written to BYO storage is encrypted client-side; encryption keys never reach the DevTriage server (see [OQ-24](09-open-questions.md)). |
 | NFR-SEC-6 | 🟠 | Tokens can be revoked, and DevTriage requests least-privilege scopes. |
-| NFR-SEC-7 | 🟠 | The CORS proxy is protected against abuse (e.g. as an open relay) — mechanism is [OQ-22](09-open-questions.md). |
+| NFR-SEC-7 | 🟠 | The CORS proxy is protected against abuse (e.g. as an open relay) by requiring an authenticated account ([OQ-22](09-open-questions.md)). |
+| NFR-SEC-8 | 🔴 | Authentication is **passwordless** (passkey / Google / GitHub); the server stores **no passwords** — only a public key or provider subject id. |
 
 ## Privacy & data ownership — `NFR-PRIV`
 
