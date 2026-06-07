@@ -30,7 +30,7 @@ phase. Owner = project owner unless stated.
 | # | Question | Notes |
 | --- | --- | --- |
 | OQ-12 | ✅ **RESOLVED — Confidence-based hybrid default** (2026-06-07). | **Auto-create** from explicit checkboxes (high confidence, matches the "auto collected" vision; safe via source-linking + two-way completion); **suggest-and-confirm** for fuzzy heuristic detections (avoids noise). Globally overridable per FR-EXTRACT-4. See [02 — FR-EXTRACT](02-functional-requirements.md#auto-extraction-of-todos--fr-extract). |
-| OQ-13 | Scope of **action-item detection** — checkboxes only first, or also heuristic sentences? | Checkboxes are MUST; heuristics SHOULD (FR-EXTRACT-5). |
+| OQ-13 | ✅ **RESOLVED — Phased: explicit markers first, lightweight heuristics later, LLM optional** (2026-06-07). | v1 = GFM checkboxes + inline `TODO:`/`FIXME:`/`@todo` markers (explicit, auto-created). Phase 2 = rule-based in-house heuristics (no heavy NLP/ML dep, NFR-DEP), suggest-and-confirm. Later = optional LLM (FR-EXTRACT-7). See [02 — FR-EXTRACT](02-functional-requirements.md#auto-extraction-of-todos--fr-extract). |
 | OQ-14 | Are **Notes vs Ideas** truly distinct entities, or one entity with a flag? | Affects data model ([05](05-data-model.md)). |
 | OQ-15 | Any **LLM-assisted** features, and if so where does inference run (local vs hosted)? | Must be opt-in & privacy-preserving (NFR-PRIV-4, FR-EXTRACT-7). |
 
