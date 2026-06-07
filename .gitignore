@@ -1,0 +1,37 @@
+# This repository is currently documentation-only.
+# Entries below are pre-emptive for when implementation begins.
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.iml
+
+# Secrets / local config — never commit credentials (see NFR-SEC)
+.env
+.env.*
+*.local
+secrets/
+*.pem
+*.key
+
+# Build output (placeholder for future stacks)
+/bin/
+/build/
+/dist/
+/out/
+
+# Go (proposed backend)
+/vendor/
+
+# iOS (Swift)
+xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+
+# Android (Kotlin)
+/.gradle/
+/local.properties
+/android/build/
