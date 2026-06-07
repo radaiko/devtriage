@@ -221,6 +221,12 @@ last-seen), plus **aggregate** usage metrics. The server still stores **no notes
 todos, documents, integration tokens, or fetched items** — those stay on-device and in
 BYO storage.
 
+**Transparency (FR-SET-0a).** Because the product promise is "we don't hold your
+data," the signup/login flow must **tell the user why an account is needed** — proxy
+abuse protection, E2EE sync coordination, and user-count metrics — and reassure that no
+content, tokens, or fetched items are stored server-side. Don't make the account feel
+like an unexplained data grab.
+
 The remaining sub-decision is the **auth mechanism** (passkeys vs social login vs
 email+password) — see [OQ-22a](09-open-questions.md).
 
