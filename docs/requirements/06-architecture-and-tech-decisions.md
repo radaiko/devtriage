@@ -30,6 +30,7 @@
 | **Auth mechanism** (OQ-22a) | **Passwordless: passkey (WebAuthn), Sign in with Google, or Sign in with GitHub.** No password-based signup; account auto-provisioned on first sign-in. | 2026-06-07 | No stored passwords (only public key / provider subject id) → least PII; reuses identities the dev audience already has. |
 | **Conflict resolution** (OQ-23) | **Pragmatic hybrid:** per-field LWW + OR-set tags + tombstones, hybrid logical clocks; long-text conflicts kept as conflict copies. Built in-house; on-device merge. | 2026-06-07 | Single-user multi-device → full CRDT is overkill and a cross-platform dep burden (NFR-DEP); hybrid is lossless for the common case and never silently loses data (NFR-REL-3). |
 | **Encryption & keys** (OQ-24) | Platform crypto only (zero-dep). Per-user random **DEK**, AES‑256‑GCM content; DEK wrapped per-device and by a **generated recovery code**; new devices enrolled via ECDH+HKDF envelopes relayed opaquely. Key decoupled from login. | 2026-06-07 | True zero-knowledge with passwordless auth; recovery code is the smoothest passwordless recovery; never hand-roll crypto. |
+| **Sync coordination schema** (OQ-26) | Per-user, opaque only: generation counter + token, contentless wake channel, device registry (public keys), ephemeral key-exchange envelope mailbox. No item-level metadata; no history. | 2026-06-07 | Speeds sync and enables device enrollment while keeping the server zero-knowledge; residual metadata (timing, device count) minimized and documented. |
 | **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
 | **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**. Small/utility code is **built in-house** (no axios-style deps); external packages **only for big features** (e.g. the text editor), under the version-aging policy. No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the platform + build small things ourselves; reserve deps for what's too big to reimplement (NFR-DEP-4/5/6). |
 
@@ -245,28 +246,41 @@ need.
 - **Server role:** the opaque version vector ([OQ-26](09-open-questions.md)) only helps
   detect/order changes; the **merge runs on-device** (the server can't read content).
 
-## Sync coordination (server-side, E2EE — recommended)
+## Sync coordination — **decided: opaque schema** (OQ-26)
 
 BYO storage alone works, but pure poll-the-bucket sync is slow and makes conflict
-ordering and new-device onboarding harder. A **thin, opaque coordination layer** on the
+ordering and device onboarding harder. A **thin, opaque coordination layer** on the
 Hetzner server materially improves the workflow **without the server reading any
-content**. It may hold, per user:
+content**. It is per-user (anchored to the account, OQ-22) and holds **only** public
+keys, opaque counters, and ciphertext.
 
-- an **opaque version pointer / vector** so devices detect "is there anything new?"
-  cheaply and order changes (helps conflict resolution, [OQ-23](09-open-questions.md));
-- **change-notification cursors / wake signals** so a write on one device promptly
-  nudges the others (enables near-real-time sync — the practical form of `FR-SYNC-6`);
-- **encrypted key-exchange envelopes** to bootstrap a new device into the user's
-  encryption keys ([OQ-24](09-open-questions.md)).
+**Schema (per user):**
 
-Constraints on this layer:
+| Item | Purpose | Privacy form |
+| --- | --- | --- |
+| **Sync generation counter** + opaque token | Cheap "is there anything new / what's the latest" so devices know when to pull from BYO (vs blind polling) | Monotonic integer + opaque ciphertext token. Per-item version vectors stay in the **encrypted BYO payload**, never here — so the server can't learn item counts/ids |
+| **Wake / notify channel** | A write on one device nudges the others → near-real-time sync (`FR-SYNC-6`) | Contentless "gen bumped" signal over WebSocket/SSE |
+| **Device registry** | Lets an enrolled device wrap the DEK to a new device's public key (OQ-24); supports revocation | Opaque device id + **public key** (not secret) + timestamps; any human label is **client-encrypted** |
+| **Key-exchange envelope mailbox** | Delivers the wrapped DEK during enrollment (OQ-24) | Ephemeral ciphertext, **deleted after pickup** |
 
-- It stores **only ciphertext / opaque counters** — never documents, notes, todos,
-  tokens, or fetched items.
-- The actual content still flows through **BYO storage**; coordination metadata never
-  substitutes for it.
-- Minimize even *metadata* exposure (sizes, timing) where practical, and make it clear
-  what the server can and cannot infer ([OQ-26](09-open-questions.md)).
+**Never stored here:** documents/notes/todos, the DEK or any plaintext key, integration
+tokens, fetched items, readable device descriptions, or readable version-vector
+contents.
+
+**Minimization rules:**
+
+- Keep **only** counters, public keys, opaque tokens, ephemeral ciphertext, coarse
+  timestamps. No item-level metadata (no item ids/counts) — only the aggregate
+  generation token.
+- Ephemeral data (envelopes, wake signals) is deleted after delivery; **no change
+  history** is retained.
+- Pad envelope/blob sizes to buckets to limit size-based inference.
+- **Residual metadata acknowledged:** the server can still infer *sync timing/frequency*
+  and *device count*. Minimize and document this; it's the cost of coordination.
+
+**Transport:** TLS; live wake via WebSocket/SSE with REST poll as fallback. Mobile
+**background** wake needs APNs/FCM (Apple/Google see device push tokens + timing); the
+payload stays **contentless** — tracked as [OQ-26a](09-open-questions.md).
 
 ## Integration collection (client-side)
 

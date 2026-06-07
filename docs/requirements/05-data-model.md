@@ -65,15 +65,18 @@ secure store), optionally mirrored as client-encrypted data in BYO storage ([OQ-
 - `id`, `source` (github | jira), `credential` (on-device / encrypted — NFR-SEC-1),
   `scope` config (repos/orgs or projects/JQL), `last synced at`, `status`/last error.
 
-### SyncState (E2EE coordination metadata — server-allowed)
-Lightweight per-user sync-coordination metadata that the hosted server **may** store to
-improve sync — strictly **E2EE/opaque, never document content**. See
-[06 — Architecture](06-architecture-and-tech-decisions.md) and [OQ-26](09-open-questions.md).
-- e.g. an opaque **version pointer / vector** per user, **change-notification cursors**
-  (to wake devices for near-real-time sync), and **encrypted key-exchange envelopes**
-  for onboarding new devices.
-- The server can read **none** of the underlying content; it sees ciphertext / opaque
-  counters only.
+### SyncState (E2EE coordination metadata — server-side)
+Per-user sync-coordination metadata the hosted server stores to improve sync — strictly
+**opaque, never document content** (schema fixed in [06 — Architecture](06-architecture-and-tech-decisions.md), OQ-26):
+- **Sync generation counter** + opaque token (cheap "is there anything new"; per-item
+  version vectors live in the encrypted BYO payload, not here).
+- **Wake/notify channel** — contentless "gen bumped" signal.
+- **Device registry** — opaque device id + **public key** + timestamps; human labels
+  client-encrypted.
+- **Key-exchange envelope mailbox** — ephemeral ciphertext (wrapped DEK), deleted after
+  pickup.
+- The server reads **none** of the underlying content; it sees ciphertext, public keys,
+  and opaque counters only. No item-level metadata; no change history.
 
 ## Relationships (text view)
 
