@@ -26,6 +26,7 @@
 | **Client architecture** | **Local-first.** Each client holds its own data and is the working source of truth. | 2026-06-07 | Required once the server holds no content. |
 | **Cross-device sync** | **Bring-your-own storage (BYO)** for content, **optionally coordinated** by a thin server-side E2EE sync service. | 2026-06-07 | Content travels through the user's own storage; the server may coordinate (change-notify / version / key-exchange) without reading content. |
 | **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
+| **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**; at most a couple of tiny **vendored, zero-transitive-dependency** libs (reactive helper + Markdown). No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the browser platform + vendored micro-deps to honor NFR-DEP. |
 
 ## High-level shape
 
@@ -83,12 +84,53 @@ truth:
 
 - **iOS:** local store (e.g. SQLite/GRDB or SwiftData); tokens in **Keychain**.
 - **Android:** local store (e.g. SQLite/Room); tokens in **Keystore**.
-- **Web:** browser local storage (e.g. IndexedDB). *Note:* a local-first web client is
-  inherently a client-side app, which is in tension with the earlier "server-rendered,
-  minimal-JS" leaning — see [OQ-2](09-open-questions.md).
+- **Web:** browser local storage (**IndexedDB**); see the dedicated web-client section
+  below for the dependency approach.
 
 Clients work fully offline against the local store and reconcile via BYO storage when
 connectivity returns (NFR-OFF).
+
+## Web client — **decided: platform-first, vendored micro-deps** (OQ-2)
+
+The local-first decision makes the web client a real client-side app, so a
+server-rendered approach is off the table. To honor
+[NFR-DEP](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep)
+we **lean on the browser platform** and add only tiny, vendored, zero-transitive
+dependencies — **no `node_modules` runtime tree, no silent updates.**
+
+**Reframe of "minimal dependencies":** the supply-chain risk is large transitive trees
+that auto-install/auto-update. A single small library that is **vendored (committed to
+the repo), version-pinned, SHA-checked, and human-reviewed** is a controlled,
+auditable surface — that is what we allow, not an npm dependency tree.
+
+**Platform-first mapping (zero dependencies):**
+
+| Need | Native browser API |
+| --- | --- |
+| Local store (local-first) | **IndexedDB** |
+| E2EE for BYO sync | **Web Crypto (SubtleCrypto)** — never hand-roll crypto |
+| Poll GitHub/Jira | **fetch** |
+| UI components | **Web Components** (Custom Elements + `<template>`) |
+| Routing | **History API / URLPattern** |
+| Reactivity | small hand-rolled store, or one tiny vendored lib |
+
+**Allowed vendored micro-deps (each a single small file, no transitive deps, to be
+vetted):**
+
+- at most **one ~1KB reactive helper** (e.g. a VanJS-style lib) if hand-rolled
+  reactivity proves painful, and
+- **one tiny Markdown parser** (the single genuine gap), or parse a restricted Markdown
+  subset in-house (we already need checkbox/action-item parsing for FR-EXTRACT).
+
+**Build tooling:** author in **TypeScript**, bundle/transpile with **esbuild** — a
+single native Go binary with no dependency tree of its own (symmetry with the Go
+backend). Fallback if even esbuild is unwanted: `tsc`-only emit of ES modules loaded
+natively, or plain-JS no-build.
+
+**Vendoring policy (applies repo-wide):** any third-party file is committed under a
+`vendor/`-style path, pinned to an exact version with a recorded checksum, reviewed on
+intake, and updated only deliberately — never via background `npm install`. Reinforces
+[NFR-DEP-3](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
 
 ## Bring-your-own storage (BYO sync)
 
