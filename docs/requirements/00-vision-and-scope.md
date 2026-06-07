@@ -51,7 +51,8 @@ viewable and actionable on web, iOS, and Android.
 ## Out of scope (initially)
 
 - Team collaboration features (shared projects, assigning work to others).
-- Writing back to GitHub/Jira beyond minimal status reflection (see open questions).
+- Writing back to GitHub/Jira — DevTriage is **read-only, permanently** (OQ-9); status
+  flows in via sync only.
 - Integrations beyond GitHub and Jira (GitLab, Linear, Asana, email, calendars) —
   the architecture should not preclude them, but they are not in the first release.
 - Time tracking, sprint planning, analytics dashboards.

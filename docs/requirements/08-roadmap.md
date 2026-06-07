@@ -9,9 +9,13 @@ outcome-oriented; dates are intentionally omitted until the stack is locked.
 - ✅ Decided: backend = Go (OQ-1); web approach (OQ-2); hosting = Hetzner, no server
   content (OQ-3/16/17); BYO backends (OQ-21); accounts + passwordless auth (OQ-22/22a);
   conflict resolution (OQ-23); E2EE keys (OQ-24); sync-coordination schema (OQ-26);
-  integration auth (OQ-6/7); web non-CORS via local companion (OQ-8a/28).
-- ⬜ Resolve remaining [open questions](09-open-questions.md): extraction & data modeling
-  (OQ-12/13/14), min OS versions (OQ-18), license (OQ-19), and the spawned detail items.
+  protocols (OQ-4); integration auth (OQ-6/7); web non-CORS via local companion
+  (OQ-8a/28); read-only + local completion + multi-account (OQ-9/10/11); poll-first
+  freshness (OQ-5/8); extraction default & scope (OQ-12/13); notes/ideas one entity
+  (OQ-14); OS targets (OQ-18); license = BSL (OQ-19); monorepo (OQ-20).
+- ⬜ Remaining [open questions](09-open-questions.md) are **implementation-phase details**
+  (OQ-25/26a/27/29), the BSL parameters + `LICENSE` (OQ-30), and a future product
+  question (OQ-15, LLM features) — none block sign-off.
 - **Exit criteria:** requirements approved; firm tech decisions recorded in
   [06 — Architecture](06-architecture-and-tech-decisions.md).
 
@@ -26,7 +30,7 @@ outcome-oriented; dates are intentionally omitted until the stack is locked.
 
 ## Phase 2 — Auto-extraction
 
-- Checkbox extraction from notes (FR-EXTRACT-1..4) with suggest/auto modes.
+- Explicit-marker extraction from notes — checkboxes + `TODO:`/`FIXME:` (FR-EXTRACT-1..4, 2a) with the confidence-based hybrid default.
 - Source linkage and basic sync of completion state (FR-EXTRACT-3/6).
 - **Exit criteria:** action items in notes reliably become linked todos.
 

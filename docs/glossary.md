@@ -18,7 +18,7 @@ Shared vocabulary for DevTriage. Keep terms here consistent across all documents
 | **Sync** | Pulling the latest external items from a source (scheduled or on-demand). |
 | **Write-back** | Sending changes from DevTriage back to a source (e.g. closing a GitHub issue). Out of initial scope. |
 | **Local-first** | Architecture where each client holds its own data and is the working source of truth, functioning offline and syncing later. |
-| **BYO storage (bring-your-own)** | The user's own storage backend (e.g. WebDAV, S3, a private Git repo, a cloud drive) that DevTriage clients sync content through. Content is encrypted client-side. |
+| **BYO storage (bring-your-own)** | The user's own storage backend that DevTriage clients sync content through. Initial backends: **WebDAV, Google Drive, Dropbox** (OQ-21); S3-compatible is a later candidate. Content is encrypted client-side. |
 | **Storage adapter** | The client-side abstraction over a specific BYO storage backend. |
 | **Sync coordination (E2EE)** | Optional thin server-side layer holding only opaque/encrypted metadata (version pointers, change notifications, key-exchange) to speed sync — never readable content. |
 | **Local companion app** | A small cross-platform app (Go) running on the user's own machine that lets the web client reach providers browsers can't call directly (Jira, WebDAV). Holds the token locally; the DevTriage server is never in the path. |

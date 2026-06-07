@@ -25,7 +25,7 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | ID | Priority | Requirement |
 | --- | --- | --- |
 | FR-NOTE-1 | 🔴 | The user can create free-form notes using Markdown. |
-| FR-NOTE-2 | 🔴 | The user can create lightweight "ideas" (short, unstructured captures) distinct from full notes. |
+| FR-NOTE-2 | 🔴 | The user can create lightweight "ideas" (short, unstructured captures), presented distinctly from full notes but modeled as the **same entity with a `kind` flag** (OQ-14, [05](05-data-model.md)). |
 | FR-NOTE-3 | 🔴 | The user can edit, organize (tag/project), and delete notes and ideas. |
 | FR-NOTE-4 | 🟠 | Notes support checkbox/task-list syntax (`- [ ]`). |
 | FR-NOTE-5 | 🟠 | Notes are full-text searchable. |
