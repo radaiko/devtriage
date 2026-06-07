@@ -26,12 +26,12 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | ID | Priority | Requirement |
 | --- | --- | --- |
 | NFR-SEC-1 | 🔴 | Integration and BYO-storage credentials live only on-device (and, if synced, only as client-encrypted data in the user's BYO storage) — never on the DevTriage server. |
-| NFR-SEC-2 | 🔴 | All network traffic (provider APIs, CORS proxy, BYO storage) uses TLS. |
+| NFR-SEC-2 | 🔴 | All network traffic (provider APIs, BYO storage, local companion, coordination) uses TLS (the local companion's loopback `127.0.0.1` interface excepted, as a browser secure context). |
 | NFR-SEC-3 | 🔴 | On native mobile, sensitive secrets use the platform secure store (iOS Keychain, Android Keystore). |
-| NFR-SEC-4 | 🔴 | The web CORS proxy handles tokens only in transit, never persisting or logging them (see [OQ-8a](09-open-questions.md)). |
+| NFR-SEC-4 | 🔴 | The server **never** relays provider/storage tokens. Web access to non-CORS providers (Jira/WebDAV) goes through the user's **local companion app**, which holds the token locally and is bound to `127.0.0.1` with a CORS origin allowlist + pairing secret (see [OQ-8a](09-open-questions.md)). |
 | NFR-SEC-5 | 🔴 | Content written to BYO storage is encrypted client-side; encryption keys never reach the DevTriage server (see [OQ-24](09-open-questions.md)). |
 | NFR-SEC-6 | 🟠 | Tokens can be revoked, and DevTriage requests least-privilege scopes. |
-| NFR-SEC-7 | 🟠 | The CORS proxy is protected against abuse (e.g. as an open relay) by requiring an authenticated account ([OQ-22](09-open-questions.md)). |
+| NFR-SEC-7 | 🟠 | The server's sync-coordination endpoints are protected against abuse by requiring an authenticated account ([OQ-22](09-open-questions.md)); the local companion is protected by `127.0.0.1` binding + CORS allowlist + pairing secret. |
 | NFR-SEC-8 | 🔴 | Authentication is **passwordless** (passkey / Google / GitHub); the server stores **no passwords** — only a public key or provider subject id. |
 | NFR-SEC-9 | 🔴 | Encryption uses **platform crypto primitives only** (Web Crypto / CryptoKit / JCA) — never hand-rolled, and no third-party crypto dependency. Content is AES‑256‑GCM under a per-user DEK (OQ-24). |
 | NFR-SEC-10 | 🔴 | Encryption keys are **decoupled from login** and recoverable only via a user-held **recovery code**; the server can never recover a user's data (zero-knowledge). This trade-off is clearly communicated to the user (FR-SET-0a). |

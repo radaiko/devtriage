@@ -26,13 +26,14 @@
 | **Client architecture** | **Local-first.** Each client holds its own data and is the working source of truth. | 2026-06-07 | Required once the server holds no content. |
 | **Cross-device sync** | **Bring-your-own storage (BYO)** for content, **optionally coordinated** by a thin server-side E2EE sync service. | 2026-06-07 | Content travels through the user's own storage; the server may coordinate (change-notify / version / key-exchange) without reading content. |
 | **Initial BYO backends** (OQ-21) | **WebDAV, Google Drive, Dropbox.** | 2026-06-07 | All HTTP-reachable from mobile+web → in-house adapters. Git-repo (mobile/git issues, NFR-DEP) and iCloud (Apple-only) excluded initially. |
-| **Accounts / identity** (OQ-22) | **Minimal accounts required** (id + auth identity + timestamps; aggregate metrics). No content/tokens/items. | 2026-06-07 | Trustworthy user count + active-user metrics; gates the CORS proxy against abuse; anchors per-user sync-coordination. |
+| **Accounts / identity** (OQ-22) | **Minimal accounts required** (id + auth identity + timestamps; aggregate metrics). No content/tokens/items. | 2026-06-07 | Trustworthy user count + active-user metrics; gates the sync-coordination service against abuse; anchors per-user sync-coordination. |
 | **Auth mechanism** (OQ-22a) | **Passwordless: passkey (WebAuthn), Sign in with Google, or Sign in with GitHub.** No password-based signup; account auto-provisioned on first sign-in. | 2026-06-07 | No stored passwords (only public key / provider subject id) → least PII; reuses identities the dev audience already has. |
 | **Conflict resolution** (OQ-23) | **Pragmatic hybrid:** per-field LWW + OR-set tags + tombstones, hybrid logical clocks; long-text conflicts kept as conflict copies. Built in-house; on-device merge. | 2026-06-07 | Single-user multi-device → full CRDT is overkill and a cross-platform dep burden (NFR-DEP); hybrid is lossless for the common case and never silently loses data (NFR-REL-3). |
 | **Encryption & keys** (OQ-24) | Platform crypto only (zero-dep). Per-user random **DEK**, AES‑256‑GCM content; DEK wrapped per-device and by a **generated recovery code**; new devices enrolled via ECDH+HKDF envelopes relayed opaquely. Key decoupled from login. | 2026-06-07 | True zero-knowledge with passwordless auth; recovery code is the smoothest passwordless recovery; never hand-roll crypto. |
 | **Sync coordination schema** (OQ-26) | Per-user, opaque only: generation counter + token, contentless wake channel, device registry (public keys), ephemeral key-exchange envelope mailbox. No item-level metadata; no history. | 2026-06-07 | Speeds sync and enables device enrollment while keeping the server zero-knowledge; residual metadata (timing, device count) minimized and documented. |
 | **GitHub integration auth** (OQ-6) | **Personal Access Token** (fine-grained preferred; classic allowed for broad reach). | 2026-06-07 | Simplest for client-side polling — no OAuth flow/server callback; token stays on-device. |
-| **Jira integration auth** (OQ-7) | **Atlassian API token + email (Basic)**, Jira Cloud first. | 2026-06-07 | Same rationale; web routes via the proxy (Jira lacks browser CORS). |
+| **Jira integration auth** (OQ-7) | **Atlassian API token + email (Basic)**, Jira Cloud first. | 2026-06-07 | Same rationale; web reaches Jira via the local companion (Jira lacks browser CORS). |
+| **Web non-CORS access** (OQ-8a) | **Local companion app** (cross-platform, Go) for web + Jira/WebDAV; **no server token proxy**. Required for those providers on web (no fallback). | 2026-06-07 | Keeps tokens entirely off our server; GitHub stays CORS-direct; bonus desktop background sync. |
 | **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
 | **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**. Small/utility code is **built in-house** (no axios-style deps); external packages **only for big features** (e.g. the text editor), under the version-aging policy. No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the platform + build small things ourselves; reserve deps for what's too big to reimplement (NFR-DEP-4/5/6). |
 
@@ -42,48 +43,57 @@
         ┌──────────────────────────────────────────────────────────┐
         │               Hetzner VM — thin Go service                 │
         │  • serves the web client    • OAuth callback handling      │
-        │  • thin CORS proxy for web → GitHub/Jira (see notes)       │
         │  • E2EE sync coordination (opaque version/notify/keys)     │
         │  • holds NO content, NO tokens, NO fetched items           │
+        │  • NEVER proxies provider tokens                           │
         └───────▲───────────────────▲───────────────────▲───────────┘
-                │ static app / proxy │                   │
+                │ static app / coord │                   │
         ┌───────┴──────┐    ┌────────┴─────┐    ┌────────┴─────┐
         │  Web client  │    │ iOS (Swift)  │    │ Android (Kt) │   local-first
         │ local store  │    │ local store  │    │ local store  │   (source of truth)
-        └──┬────────┬──┘    └──┬────────┬──┘    └──┬────────┬──┘
-           │        │          │        │          │        │
-   direct  │        │  sync     │       │  sync     │        │ direct API calls
-   API     │        ▼           ▼       ▼           ▼        │ (mobile: no proxy)
-   (mobile)│   ┌─────────────────────────────────────┐      │
-           │   │   User's OWN storage (BYO sync hub)  │      │
-           │   │  WebDAV / S3 / private Git / etc.    │      │
-           │   │   (encrypted by the client)         │      │
-           │   └─────────────────────────────────────┘      │
-           └───────────────► GitHub / Jira ◄────────────────┘
+        └──┬───────┬───┘    └──┬────────┬──┘    └──┬────────┬──┘
+           │       │           │        │          │        │
+   via     │       │   sync     │       │  sync     │        │ direct API calls
+ companion │       ▼            ▼       ▼           ▼        │ (mobile: always direct)
+ (Jira/    │  ┌─────────────────────────────────────┐      │
+  WebDAV)  │  │   User's OWN storage (BYO sync hub)  │      │
+   +direct │  │  WebDAV / Google Drive / Dropbox     │      │
+  (GitHub) │  │   (encrypted by the client)         │      │
+           │  └─────────────────────────────────────┘      │
+           ▼                                                │
+  ┌─────────────────────┐                                  │
+  │  Local companion app │ ──► GitHub / Jira / WebDAV       │
+  │  (user's machine,    │ ◄───────────────────────────────┘
+  │   holds the tokens)  │
+  └─────────────────────┘
 ```
 
-Two independent data flows, **neither of which touches our server's storage**:
+Data flows, **none of which let our server touch content or tokens**:
 
-1. **Sync flow** — clients read/write the user's own data (todos, notes, ideas,
-   overlays) to the **user's BYO storage**, encrypted client-side.
-2. **Integration flow** — clients poll **GitHub/Jira directly** with on-device tokens
-   (web routes through the stateless CORS proxy where the provider requires it).
+1. **Sync flow** — clients read/write the user's own data to the **user's BYO storage**,
+   encrypted client-side.
+2. **Integration flow** — clients poll providers with on-device tokens. **Mobile** calls
+   directly. **Web** calls GitHub directly (CORS-friendly); for **Jira / WebDAV** (no
+   browser CORS) the web client calls a **local companion app** on the user's own
+   machine, which holds the token and forwards the request. The server is never in this
+   path.
+3. **Coordination flow** — opaque E2EE sync metadata only (version/notify/key-exchange).
 
 ## The server (Hetzner VM) — what it is and isn't
 
 **Is:** a small Go service that (a) serves the web client, (b) handles OAuth
-redirect/callback for connecting GitHub/Jira, (c) provides a thin CORS proxy so the
-**web** client can reach provider APIs that don't allow browser-origin calls, and (d)
-optionally runs a **thin E2EE sync-coordination layer** (see below).
+redirect/callback for login and BYO cloud-storage connect, and (c) runs the **thin E2EE
+sync-coordination layer** (see below).
 
-**Is not:** a content store or a token vault. It persists **no documents, notes,
-todos, tokens, or fetched items** — only opaque sync-coordination metadata, if any. A
-wiped VM loses no user content; everything readable lives on devices and in the user's
-BYO storage.
+**Is not:** a content store, a token vault, **or a provider proxy**. It persists **no
+documents, notes, todos, tokens, or fetched items** — only opaque sync-coordination
+metadata. It **never** relays provider/storage tokens (the local companion handles the
+web non-CORS case). A wiped VM loses no user content.
 
-> **Why Go is still the right pick:** even as a thin stateless host/proxy, Go's std-lib
-> HTTP server + single static binary + easy deployment on a single VM fit perfectly,
-> with essentially zero third-party dependencies (NFR-DEP).
+> **Why Go is still the right pick:** even as a thin stateless host, Go's std-lib HTTP
+> server + single static binary + easy deployment on a single VM fit perfectly, with
+> essentially zero third-party dependencies (NFR-DEP). Go is **also ideal for the local
+> companion** — a cross-platform single binary that can reuse the connector code.
 
 ## Local-first clients
 
@@ -287,15 +297,36 @@ payload stays **contentless** — tracked as [OQ-26a](09-open-questions.md).
 ## Integration collection (client-side)
 
 - Connectors run **inside each client**; the user's tokens never leave the device's
-  secure store (mobile) / browser (web).
-- **Mobile** apps call GitHub/Jira **directly**.
-- **Web** must contend with browser CORS: some provider endpoints allow browser-origin
-  calls, others (notably Jira) do not. Where needed, the web client routes through the
-  Hetzner **CORS proxy**, which **forwards but does not store** the request/token.
-  Whether transient token pass-through via the proxy is acceptable — and which
-  providers work direct vs proxied — is an [open question](09-open-questions.md).
+  secure store (mobile) / the browser or local companion (web).
+- **Mobile** apps call GitHub/Jira **directly** (no CORS restriction).
+- **Web** contends with browser CORS: **GitHub** is CORS-friendly → called **directly**;
+  **Jira and WebDAV** are not → reached via the **local companion app** (OQ-8a), never
+  through our server.
 - Because polling is client-side, **background sync while the app is closed is limited**
-  (esp. web). This is an accepted trade-off of the "server stores nothing" decision.
+  on web — *except* where the local companion runs (it can keep polling and wake the web
+  app). Mobile background wake uses contentless push ([OQ-26a](09-open-questions.md)).
+
+## Local companion app — **decided** (OQ-8a)
+
+A small **cross-platform local app** (Go — single binary, minimal deps, can reuse the
+connector code) that runs on the user's own machine and lets the **web** client reach
+providers that browsers can't call directly (**Jira, WebDAV**). The web app calls
+`http://127.0.0.1:PORT`; the companion holds the token locally and forwards the request.
+**The token never touches our server** — keeping "the server sees no tokens" absolute.
+
+- **Required for web + Jira/WebDAV; no server fallback.** If the companion isn't
+  installed, the web app prompts to install it (or use mobile). GitHub-only web users
+  don't need it (GitHub is CORS-direct).
+- **Browser → localhost mechanics:** the companion returns CORS headers scoped to the
+  DevTriage web origin; `http://localhost` is a browser "secure context" so HTTPS→localhost
+  isn't blocked as mixed content; it handles Chrome **Private Network Access** preflight
+  (`Access-Control-Allow-Private-Network`).
+- **Abuse protection:** bind to `127.0.0.1` only, CORS origin allowlist, **plus a
+  pairing secret** so only the real DevTriage web app can use it.
+- **Bonus:** because it runs locally, the companion can poll Jira/GitHub even when the
+  browser tab is closed and then wake the web app — desktop background sync.
+- Open specifics (port strategy, distribution/signing, PNA evolution) tracked as
+  [OQ-29](09-open-questions.md).
 
 See [03 — Integration Requirements](03-integration-requirements.md) for item-level
 detail.
@@ -305,7 +336,7 @@ detail.
 DevTriage **requires a user account / login**. Accounts give the operator a
 trustworthy **user count** and active-user metrics (an anonymous device heartbeat would
 only count devices, reset on reinstall, and can't dedupe a person across web+iOS+Android),
-and they double as the **gate that stops the CORS proxy being an open relay**
+and they double as the **gate that protects the sync-coordination service from abuse**
 ([NFR-SEC-7](04-non-functional-requirements.md)) and the **per-user anchor for the E2EE
 sync-coordination metadata** ([OQ-26](09-open-questions.md)).
 
@@ -337,10 +368,10 @@ are different credentials with different trust boundaries.
 
 ## Security posture (summary)
 
-- Tokens live only on-device (Keychain/Keystore/browser) and, if synced, only as
-  **client-encrypted** data in the user's BYO storage (NFR-SEC-1/3).
-- The server never stores tokens or content; the web CORS proxy handles them only in
-  transit, over TLS (NFR-SEC-2/4).
+- Tokens live only on-device (Keychain/Keystore/browser/local companion) and, if synced,
+  only as **client-encrypted** data in the user's BYO storage (NFR-SEC-1/3).
+- The server **never** stores or relays tokens; the web non-CORS case is handled by the
+  user's local companion, not our server (NFR-SEC-4). All traffic over TLS (NFR-SEC-2).
 - Every dependency pinned and integrity-checked (NFR-DEP-3); CI dependency scanning
   once code begins (NFR-DEP-8).
 

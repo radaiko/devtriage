@@ -21,7 +21,7 @@ Shared vocabulary for DevTriage. Keep terms here consistent across all documents
 | **BYO storage (bring-your-own)** | The user's own storage backend (e.g. WebDAV, S3, a private Git repo, a cloud drive) that DevTriage clients sync content through. Content is encrypted client-side. |
 | **Storage adapter** | The client-side abstraction over a specific BYO storage backend. |
 | **Sync coordination (E2EE)** | Optional thin server-side layer holding only opaque/encrypted metadata (version pointers, change notifications, key-exchange) to speed sync — never readable content. |
-| **CORS proxy** | The stateless server component that forwards web-client requests to provider APIs that disallow browser-origin calls; stores nothing. |
+| **Local companion app** | A small cross-platform app (Go) running on the user's own machine that lets the web client reach providers browsers can't call directly (Jira, WebDAV). Holds the token locally; the DevTriage server is never in the path. |
 | **Hosted service** | DevTriage is operated by the project owner on a Hetzner VM (not self-hosted by end users), yet the server stores no customer content. |
 | **Account** | A required, minimal identity record on the server (id + auth identity + timestamps) used for login and user-count metrics. Holds no user content, tokens, or fetched items. |
 | **Pragmatic hybrid (conflict resolution)** | DevTriage's sync-merge strategy (OQ-23): per-field last-write-wins, add-wins (OR-set) tags, tombstoned deletes, hybrid logical clocks, and conflict copies for divergent long text — lossless for the common case, never silently losing data. |

@@ -6,16 +6,18 @@ outcome-oriented; dates are intentionally omitted until the stack is locked.
 ## Phase 0 — Requirements & decisions *(current)*
 
 - ✅ Vision, scope, personas, functional & non-functional requirements documented.
-- ✅ Decided: backend = Go (OQ-1); hosting = Hetzner, server stores no content (OQ-3/16/17).
-- ⬜ Resolve remaining [open questions](09-open-questions.md): web approach (OQ-2),
-  BYO storage backends (OQ-21), identity/proxy-abuse (OQ-22), conflict resolution
-  (OQ-23), encryption/keys (OQ-24), sync-coordination schema (OQ-26), license (OQ-19).
+- ✅ Decided: backend = Go (OQ-1); web approach (OQ-2); hosting = Hetzner, no server
+  content (OQ-3/16/17); BYO backends (OQ-21); accounts + passwordless auth (OQ-22/22a);
+  conflict resolution (OQ-23); E2EE keys (OQ-24); sync-coordination schema (OQ-26);
+  integration auth (OQ-6/7); web non-CORS via local companion (OQ-8a/28).
+- ⬜ Resolve remaining [open questions](09-open-questions.md): extraction & data modeling
+  (OQ-12/13/14), min OS versions (OQ-18), license (OQ-19), and the spawned detail items.
 - **Exit criteria:** requirements approved; firm tech decisions recorded in
   [06 — Architecture](06-architecture-and-tech-decisions.md).
 
 ## Phase 1 — Core capture (local-first, one client)
 
-- Thin Go server skeleton (static host, OAuth callback, CORS proxy) — **no content store**.
+- Thin Go server skeleton (static host, OAuth callback, sync-coordination) — **no content store, no token proxy**.
 - Local-first data layer + one **BYO storage adapter** with client-side encryption
   (FR-SYNC-1/5).
 - Todos CRUD (FR-CAP-1..4) and Notes/Ideas (FR-NOTE-1..3) in the first client (web).
@@ -30,7 +32,8 @@ outcome-oriented; dates are intentionally omitted until the stack is locked.
 
 ## Phase 3 — Integrations (the differentiator)
 
-- Client-side connector framework (NFR-MNT-1, FR-INT-0/12); web CORS proxy on the server.
+- Client-side connector framework (NFR-MNT-1, FR-INT-0/12); **local companion app** for
+  web Jira/WebDAV (FR-INT-0b, OQ-8a).
 - GitHub connector (INT-GH-1..3) and Jira connector (INT-JIRA-1).
 - Unified inbox combining todos + external items (FR-TRIAGE-1).
 - On-device credential storage & security (NFR-SEC-1..5).

@@ -52,6 +52,7 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | ID | Priority | Requirement |
 | --- | --- | --- |
 | FR-INT-0 | 🔴 | Integration polling happens **client-side**; tokens are stored on-device (and optionally in encrypted BYO storage — [OQ-25](09-open-questions.md)), never on the server. |
+| FR-INT-0b | 🔴 | On **web**, providers browsers can't call directly (Jira, WebDAV) are reached via a **local companion app** on the user's machine that holds the token locally; provider tokens never transit the DevTriage server ([OQ-8a](09-open-questions.md)). |
 | FR-INT-1 | 🔴 | The user can connect a GitHub account/credential. |
 | FR-INT-2 | 🔴 | The user can connect a Jira account/credential. |
 | FR-INT-3 | 🔴 | DevTriage collects GitHub **issues assigned to the user**. |
@@ -108,7 +109,7 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | ID | Priority | Requirement |
 | --- | --- | --- |
 | FR-SET-0 | 🔴 | The user can sign in **passwordlessly** via **passkey**, **Sign in with Google**, or **Sign in with GitHub**. There is **no password-based account creation**; the account is provisioned automatically on first sign-in. It holds only minimal identity (public key / provider subject id + timestamps) and never user content (see [NFR-PRIV-1](04-non-functional-requirements.md)). |
-| FR-SET-0a | 🔴 | The account/login flow **clearly explains why an account is required** — (1) to protect the shared CORS proxy from abuse, (2) to coordinate end-to-end-encrypted cross-device sync, and (3) for user-count metrics — and **reassures that no notes/todos/documents, tokens, or fetched items are stored on the server**. |
+| FR-SET-0a | 🔴 | The account/login flow **clearly explains why an account is required** — (1) to coordinate end-to-end-encrypted cross-device sync, (2) to protect the sync-coordination service from abuse, and (3) for user-count metrics — and **reassures that no notes/todos/documents, tokens, or fetched items are stored on the server**. |
 | FR-SET-1 | 🔴 | The user can connect a **bring-your-own storage** backend to enable cross-device sync, and test/disconnect it. |
 | FR-SET-2 | 🔴 | The user can add, test, and revoke external integration credentials. |
 | FR-SET-3 | 🔴 | Integration credentials and BYO-storage credentials are stored securely **on-device** (platform secure store) and never sent to the DevTriage server (see NFR-SEC). |
