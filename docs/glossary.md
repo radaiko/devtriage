@@ -6,8 +6,8 @@ Shared vocabulary for DevTriage. Keep terms here consistent across all documents
 | --- | --- |
 | **DevTriage** | This product: a universal developer tool unifying personal todos/notes with assigned work collected from GitHub and Jira. |
 | **Todo** | A user-actionable task. May be created manually or extracted from a note/idea. |
-| **Note** | Free-form Markdown content (e.g. meeting/design notes). May contain action items. |
-| **Idea** | A lightweight, short, unstructured capture — smaller than a Note. |
+| **Note** | Free-form Markdown content (e.g. meeting/design notes). May contain action items. Modeled as the free-form-text entity with `kind = note` (OQ-14). |
+| **Idea** | A lightweight, short, unstructured capture — the same entity with `kind = idea` (OQ-14). Can be promoted to a Note (flip the flag) or a Todo. |
 | **Action item** | A task-like line inside a note/idea (e.g. a `- [ ]` checkbox) that can become a Todo. |
 | **Auto-extraction / Auto-collection** | Detecting action items inside notes/ideas and surfacing them as Todos. |
 | **External item** | A GitHub or Jira item assigned to the user, collected by a connector and shown in the inbox. A read model — the external system stays the source of truth. |

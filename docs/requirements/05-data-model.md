@@ -29,16 +29,16 @@ A user-actionable task.
 - **Origin**: `manual` | `extracted` | (potentially) `promoted-from-external`.
 - If extracted: reference to the **source note** and position (FR-EXTRACT-3).
 
-### Note
-Free-form Markdown content.
-- `id`, `title` (optional), `body` (Markdown), `created/updated`.
+### Note / Idea (one entity — OQ-14)
+Free-form text is **a single entity with a `kind` flag** (`note | idea`), not two
+separate entities. They share storage, sync, encryption, search, and action-item
+extraction; the difference is UX/intent (a *note* is a fuller Markdown document; an
+*idea* is a quick, short, usually title-less capture).
+- `id`, `kind` (`note | idea`), `title` (optional), `body` (Markdown), `created/updated`.
 - Optional links: `project`, `tags[]`.
-- May contain action items that yield extracted Todos.
-
-### Idea
-A lightweight, short capture (distinct from a full Note — FR-NOTE-2).
-- `id`, `body`, `created/updated`, optional `tags[]`.
-- May be promoted into a Note or Todo.
+- May contain action items that yield extracted Todos (FR-EXTRACT).
+- **Promotion** is just changing state: idea → note flips `kind`; idea/note → Todo uses
+  the existing promotion path.
 
 ### ExternalItem (read model)
 A GitHub/Jira item assigned to the user, collected by a connector.
@@ -82,12 +82,11 @@ Per-user sync-coordination metadata the hosted server stores to improve sync —
 
 ```
 User 1──* Todo
-User 1──* Note 1──* Todo        (extracted todos link to a source note)
-User 1──* Idea
+User 1──* Note/Idea 1──* Todo   (one entity w/ kind flag; extracted todos link to source)
 User 1──* ExternalItem          (collected from connectors)
 User 1──* IntegrationConnection 1──* ExternalItem
-Project 1──* Todo / Note        (and external items via overlay)
-Tag *──* Todo / Note / Idea / ExternalItem
+Project 1──* Todo / Note/Idea   (and external items via overlay)
+Tag *──* Todo / Note-Idea / ExternalItem
 ```
 
 ## The "Unified Inbox"
