@@ -25,6 +25,7 @@
 | **Server data** (OQ-3, OQ-16) | **No customer content** — no documents/notes/todos, no tokens, no fetched items. **May** hold **E2EE/opaque sync-coordination metadata** only. | 2026-06-07 | Minimize liability/privacy exposure; allow a thin coordination layer if it improves sync, as long as content stays unreadable to the server. |
 | **Client architecture** | **Local-first.** Each client holds its own data and is the working source of truth. | 2026-06-07 | Required once the server holds no content. |
 | **Cross-device sync** | **Bring-your-own storage (BYO)** for content, **optionally coordinated** by a thin server-side E2EE sync service. | 2026-06-07 | Content travels through the user's own storage; the server may coordinate (change-notify / version / key-exchange) without reading content. |
+| **Initial BYO backends** (OQ-21) | **WebDAV, Google Drive, Dropbox.** | 2026-06-07 | All HTTP-reachable from mobile+web → in-house adapters. Git-repo (mobile/git issues, NFR-DEP) and iCloud (Apple-only) excluded initially. |
 | **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
 | **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**. Small/utility code is **built in-house** (no axios-style deps); external packages **only for big features** (e.g. the text editor), under the version-aging policy. No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the platform + build small things ourselves; reserve deps for what's too big to reimplement (NFR-DEP-4/5/6). |
 
@@ -148,10 +149,16 @@ and [NFR-DEP-10](04-non-functional-requirements.md#dependency--supply-chain-poli
 
 - A **storage adapter** abstracts the user's chosen backend behind one interface
   (`read`, `write`, `list`, `delete` of encrypted objects).
-- Candidate backends (which to support first is [open](09-open-questions.md)): WebDAV,
-  S3-compatible object storage, a **private Git repo** (possibly reusing the GitHub
-  account the user already connects), and native cloud drives (iCloud Drive / Google
-  Drive).
+- **Initial backends (decided — OQ-21): WebDAV, Google Drive, Dropbox.** All three are
+  reachable over plain HTTP from both mobile and web, so adapters are built in-house
+  (no heavy SDKs, per NFR-DEP). Use scoped access where available (Google Drive
+  **app-data folder**, Dropbox **app-folder**) to minimize permissions and OAuth
+  verification burden.
+- **Deliberately excluded from the initial set** (kept possible later via the adapter
+  interface): a **private Git repo** (no native git on mobile; the Contents API is
+  rate-limited and clunky for frequent small writes, and a bundled git library violates
+  NFR-DEP; git's history model is a poor fit for live sync) and **iCloud Drive**
+  (Apple-only, so it can't serve Android/web). S3-compatible is a plausible later add.
 - **Client-side encryption:** data written to BYO storage is encrypted by the client so
   the storage provider can't read it. Key management is an [open question](09-open-questions.md).
 - **Integration tokens** may also be kept (encrypted) in BYO storage so every device

@@ -46,7 +46,9 @@ phase. Owner = project owner unless stated.
 
 | # | Question | Notes |
 | --- | --- | --- |
-| OQ-21 | **Which BYO storage backends** to support first? | Candidates: WebDAV, S3-compatible, private Git repo (reuse connected GitHub?), iCloud Drive / Google Drive. Each has different auth & API surface (mind NFR-DEP). |
+| OQ-21 | ✅ **RESOLVED — Initial BYO backends: WebDAV, Google Drive, Dropbox** (2026-06-07). | All reachable over plain HTTP from mobile + web → in-house adapters (NFR-DEP); content client-side encrypted. **Excluded initially:** private Git repo (no native git on mobile; Contents API rate-limited/clunky; bundled git lib violates NFR-DEP; history model poor for live sync) and iCloud Drive (Apple-only). S3-compatible is a later candidate. Recorded in [06](06-architecture-and-tech-decisions.md). Spawns OQ-27, OQ-28. |
+| OQ-27 | **Per-provider auth & verification** — WebDAV (Basic/app-password) vs Google/Dropbox OAuth; can we stay within Google Drive's **app-data folder** / Dropbox **app-folder** scopes to avoid heavy OAuth app verification? | OAuth callbacks run through the Hetzner server's existing callback role. |
+| OQ-28 | **WebDAV web CORS** — most WebDAV servers don't send CORS headers, so the web client likely needs the Hetzner proxy (ties to [OQ-8a](09-open-questions.md)); confirm scope. | Mobile reaches WebDAV directly. |
 | OQ-22 | **Identity / auth** — does DevTriage need accounts at all, and how is the **CORS proxy protected from abuse** if there's no login? | With no server data, identity may just be BYO-storage + integration tokens. |
 | OQ-23 | **Sync conflict resolution** — CRDT vs last-write-wins vs per-field merge? | Local-first multi-device editing needs a deterministic, no-silent-loss strategy (NFR-REL-3). A server-side opaque version vector (OQ-26) can assist ordering. |
 | OQ-24 | **Client-side encryption & key management** for BYO data — passphrase-derived key? device-to-device key exchange? | Storage providers must not be able to read content; keys never reach our server. Server may relay **encrypted** key-exchange envelopes (OQ-26). |
