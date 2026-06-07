@@ -29,6 +29,7 @@
 | **Accounts / identity** (OQ-22) | **Minimal accounts required** (id + auth identity + timestamps; aggregate metrics). No content/tokens/items. | 2026-06-07 | Trustworthy user count + active-user metrics; gates the CORS proxy against abuse; anchors per-user sync-coordination. |
 | **Auth mechanism** (OQ-22a) | **Passwordless: passkey (WebAuthn), Sign in with Google, or Sign in with GitHub.** No password-based signup; account auto-provisioned on first sign-in. | 2026-06-07 | No stored passwords (only public key / provider subject id) → least PII; reuses identities the dev audience already has. |
 | **Conflict resolution** (OQ-23) | **Pragmatic hybrid:** per-field LWW + OR-set tags + tombstones, hybrid logical clocks; long-text conflicts kept as conflict copies. Built in-house; on-device merge. | 2026-06-07 | Single-user multi-device → full CRDT is overkill and a cross-platform dep burden (NFR-DEP); hybrid is lossless for the common case and never silently loses data (NFR-REL-3). |
+| **Encryption & keys** (OQ-24) | Platform crypto only (zero-dep). Per-user random **DEK**, AES‑256‑GCM content; DEK wrapped per-device and by a **generated recovery code**; new devices enrolled via ECDH+HKDF envelopes relayed opaquely. Key decoupled from login. | 2026-06-07 | True zero-knowledge with passwordless auth; recovery code is the smoothest passwordless recovery; never hand-roll crypto. |
 | **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
 | **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**. Small/utility code is **built in-house** (no axios-style deps); external packages **only for big features** (e.g. the text editor), under the version-aging policy. No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the platform + build small things ourselves; reserve deps for what's too big to reimplement (NFR-DEP-4/5/6). |
 
@@ -163,11 +164,54 @@ and [NFR-DEP-10](04-non-functional-requirements.md#dependency--supply-chain-poli
   NFR-DEP; git's history model is a poor fit for live sync) and **iCloud Drive**
   (Apple-only, so it can't serve Android/web). S3-compatible is a plausible later add.
 - **Client-side encryption:** data written to BYO storage is encrypted by the client so
-  the storage provider can't read it. Key management is an [open question](09-open-questions.md).
+  the storage provider can't read it. See the Encryption & key management section below
+  (OQ-24).
 - **Integration tokens** may also be kept (encrypted) in BYO storage so every device
   can poll after a single connect — *proposed*, see open questions.
 - **Sync & conflicts:** resolved via a **pragmatic hybrid** strategy (OQ-23) — see the
   Conflict resolution section below.
+
+## Encryption & key management — **decided** (OQ-24)
+
+All crypto uses **platform primitives** (Web Crypto/SubtleCrypto, Apple CryptoKit,
+Android JCA/Keystore) — **never hand-rolled**, and **zero third-party crypto deps**
+(NFR-DEP). Everything written to BYO storage *and* every blob the server holds is
+ciphertext.
+
+**Key decoupled from login.** Auth is passwordless (passkey/Google/GitHub), and social
+logins yield no crypto material — so the encryption key is **independent of the login
+method**.
+
+**Key hierarchy:**
+
+- **Content cipher:** **AES‑256‑GCM** (native on all three platforms), fresh nonce per
+  record/blob.
+- **DEK (Data Encryption Key):** one random per-user symmetric key that encrypts all
+  content. Generated on the first device; **never leaves a device in plaintext and never
+  reaches our server or any BYO provider.**
+- The DEK is **wrapped** two ways:
+  1. **Per enrolled device** — protected by a device keypair in the platform secure
+     store (Keychain/Keystore; web = non-extractable `CryptoKey`).
+  2. **By a generated recovery code** (the chosen recovery model, see below).
+
+**New-device enrollment (zero-knowledge):** the new device generates a keypair, proves
+it's logged in, and an existing device wraps the DEK to the new device's public key via
+**ECDH (P‑256) + HKDF + AES‑GCM** (all native). The wrapped blob is **relayed through
+the server as an opaque encrypted envelope** ([OQ-26](09-open-questions.md)) — the
+server sees only ciphertext. If no existing device is available, the user recovers with
+the recovery code.
+
+**Recovery model — generated recovery code (OQ-24 decision):** at setup DevTriage
+generates a one-time high-entropy **recovery code** the user saves (password manager /
+print); it wraps the DEK so the user can recover on a fresh device with no other device
+available. It's the smoothest fit with passwordless (nothing to memorize). Honest
+trade-off, clearly communicated to the user: **losing the recovery code *and* all
+enrolled devices means the data is unrecoverable** — by design, because zero-knowledge
+means we *cannot* recover it.
+
+**Deferred / optional later:** passkey **PRF** as a convenience unlock where supported,
+an optional user passphrase, and DEK rotation/re-wrap. Tracked under
+[OQ-24](09-open-questions.md).
 
 ## Conflict resolution — **decided: pragmatic hybrid** (OQ-23)
 

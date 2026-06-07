@@ -33,6 +33,8 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | NFR-SEC-6 | 🟠 | Tokens can be revoked, and DevTriage requests least-privilege scopes. |
 | NFR-SEC-7 | 🟠 | The CORS proxy is protected against abuse (e.g. as an open relay) by requiring an authenticated account ([OQ-22](09-open-questions.md)). |
 | NFR-SEC-8 | 🔴 | Authentication is **passwordless** (passkey / Google / GitHub); the server stores **no passwords** — only a public key or provider subject id. |
+| NFR-SEC-9 | 🔴 | Encryption uses **platform crypto primitives only** (Web Crypto / CryptoKit / JCA) — never hand-rolled, and no third-party crypto dependency. Content is AES‑256‑GCM under a per-user DEK (OQ-24). |
+| NFR-SEC-10 | 🔴 | Encryption keys are **decoupled from login** and recoverable only via a user-held **recovery code**; the server can never recover a user's data (zero-knowledge). This trade-off is clearly communicated to the user (FR-SET-0a). |
 
 ## Privacy & data ownership — `NFR-PRIV`
 

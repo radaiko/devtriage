@@ -28,5 +28,8 @@ Shared vocabulary for DevTriage. Keep terms here consistent across all documents
 | **Conflict copy** | A preserved second version of an item created when concurrent edits to long text can't be merged cleanly, surfaced for the user to reconcile. |
 | **Tombstone** | A deletion marker (kept for a retention window) so a deleted item isn't resurrected by a concurrent edit during sync. |
 | **Hybrid logical clock (HLC)** | A timestamp combining a logical counter with wall-clock time, used to order edits without being thrown off by device clock skew. |
+| **DEK (Data Encryption Key)** | The per-user random symmetric key (AES‑256‑GCM) that encrypts all content. Never leaves a device in plaintext; never reaches the server or a BYO provider. |
+| **Recovery code** | A one-time high-entropy code generated at setup that wraps the DEK, letting a user recover on a fresh device with no other device available. DevTriage cannot recover data without it (zero-knowledge). |
+| **Device enrollment** | Adding a new device to a user's account: it generates a keypair and receives the DEK wrapped via ECDH+HKDF, relayed as an opaque encrypted envelope through the server. |
 | **FR-* / NFR-*** | Functional / Non-functional requirement IDs used for traceability. |
 | **OQ-*** | Open question IDs in [09 — Open Questions](requirements/09-open-questions.md). |
