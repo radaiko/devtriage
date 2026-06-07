@@ -9,18 +9,22 @@ notes tool** that also **collects work assigned to the user from GitHub and Jira
 (issues, pull requests, tasks) into a single triage surface, available on **web,
 iOS, and Android**.
 
-## Current phase: REQUIREMENTS FIRST (code comes later)
+## Current phase: IMPLEMENTATION (requirements signed off 2026-06-07)
 
-This is **deliberate sequencing, not a permanent ban** — implementation *will* happen
-in later sessions. The current goal is to produce and refine clear, agreed
-requirements before any implementation starts, so the repository currently contains
-documentation only.
+✅ **The requirements phase is complete** — the owner signed off on 2026-06-07. All
+gating decisions are made; the remaining [open questions](docs/requirements/09-open-questions.md)
+(OQ-15 LLM features; OQ-25/26a/27/29 implementation details) are deferred to the phase
+they belong to and do **not** block coding.
 
-🚫 **Do not write application code until the user says the requirements phase is
-done.** When asked to make changes in this phase, default to editing the documents
-under [`docs/requirements/`](docs/requirements/). Once the user signals that
-requirements are complete (and the open architecture decisions are resolved),
-implementation work is expected and welcome.
+**Implementation is now expected and welcome.** Build per the agreed plan:
+- Sequencing is in [08 — Roadmap](docs/requirements/08-roadmap.md) (start at Phase 1).
+- Decided stack/architecture is in [06 — Architecture](docs/requirements/06-architecture-and-tech-decisions.md#decided).
+- Keep requirements docs in sync as implementation reveals new detail; record new
+  decisions back into [06] and resolve deferred OQs in [09] when their phase arrives.
+- **Repo layout: monorepo** (OQ-20) — backend + companion (both Go, shared connector
+  code) + web (TypeScript) + iOS (Swift) + Android (Kotlin) + docs.
+
+The hard constraints below still apply at all times.
 
 ## Hard constraints (do not violate without explicit sign-off)
 

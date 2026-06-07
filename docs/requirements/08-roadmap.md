@@ -3,7 +3,7 @@
 A suggested sequencing of work **once requirements are signed off**. Phases are
 outcome-oriented; dates are intentionally omitted until the stack is locked.
 
-## Phase 0 — Requirements & decisions *(current)*
+## Phase 0 — Requirements & decisions *(✅ complete — signed off 2026-06-07)*
 
 - ✅ Vision, scope, personas, functional & non-functional requirements documented.
 - ✅ Decided: backend = Go (OQ-1); web approach (OQ-2); hosting = Hetzner, no server
@@ -20,7 +20,7 @@ outcome-oriented; dates are intentionally omitted until the stack is locked.
 - **Exit criteria:** requirements approved; firm tech decisions recorded in
   [06 — Architecture](06-architecture-and-tech-decisions.md).
 
-## Phase 1 — Core capture (local-first, one client)
+## Phase 1 — Core capture (local-first, one client) *(next)*
 
 - Thin Go server skeleton (static host, OAuth callback, sync-coordination) — **no content store, no token proxy**.
 - Local-first data layer + one **BYO storage adapter** with client-side encryption
