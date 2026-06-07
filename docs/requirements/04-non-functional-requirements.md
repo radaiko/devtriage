@@ -63,7 +63,7 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | --- | --- | --- |
 | NFR-REL-1 | 🔴 | User-captured data is durably stored and not lost on sync conflicts. |
 | NFR-REL-2 | 🔴 | A failed integration sync never deletes or corrupts previously collected items. |
-| NFR-REL-3 | 🟠 | Sync conflicts (e.g. offline edits) resolve deterministically with no silent data loss. |
+| NFR-REL-3 | 🔴 | Sync conflicts (e.g. offline edits) resolve deterministically with no silent data loss — via the pragmatic-hybrid strategy (OQ-23; see [06](06-architecture-and-tech-decisions.md)): per-field LWW, OR-set tags, tombstoned deletes, and conflict copies for divergent long text. |
 
 ## Offline & connectivity — `NFR-OFF`
 

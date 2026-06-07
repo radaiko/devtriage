@@ -24,5 +24,9 @@ Shared vocabulary for DevTriage. Keep terms here consistent across all documents
 | **CORS proxy** | The stateless server component that forwards web-client requests to provider APIs that disallow browser-origin calls; stores nothing. |
 | **Hosted service** | DevTriage is operated by the project owner on a Hetzner VM (not self-hosted by end users), yet the server stores no customer content. |
 | **Account** | A required, minimal identity record on the server (id + auth identity + timestamps) used for login and user-count metrics. Holds no user content, tokens, or fetched items. |
+| **Pragmatic hybrid (conflict resolution)** | DevTriage's sync-merge strategy (OQ-23): per-field last-write-wins, add-wins (OR-set) tags, tombstoned deletes, hybrid logical clocks, and conflict copies for divergent long text — lossless for the common case, never silently losing data. |
+| **Conflict copy** | A preserved second version of an item created when concurrent edits to long text can't be merged cleanly, surfaced for the user to reconcile. |
+| **Tombstone** | A deletion marker (kept for a retention window) so a deleted item isn't resurrected by a concurrent edit during sync. |
+| **Hybrid logical clock (HLC)** | A timestamp combining a logical counter with wall-clock time, used to order edits without being thrown off by device clock skew. |
 | **FR-* / NFR-*** | Functional / Non-functional requirement IDs used for traceability. |
 | **OQ-*** | Open question IDs in [09 — Open Questions](requirements/09-open-questions.md). |

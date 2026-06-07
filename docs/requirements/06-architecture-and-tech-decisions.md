@@ -28,6 +28,7 @@
 | **Initial BYO backends** (OQ-21) | **WebDAV, Google Drive, Dropbox.** | 2026-06-07 | All HTTP-reachable from mobile+web → in-house adapters. Git-repo (mobile/git issues, NFR-DEP) and iCloud (Apple-only) excluded initially. |
 | **Accounts / identity** (OQ-22) | **Minimal accounts required** (id + auth identity + timestamps; aggregate metrics). No content/tokens/items. | 2026-06-07 | Trustworthy user count + active-user metrics; gates the CORS proxy against abuse; anchors per-user sync-coordination. |
 | **Auth mechanism** (OQ-22a) | **Passwordless: passkey (WebAuthn), Sign in with Google, or Sign in with GitHub.** No password-based signup; account auto-provisioned on first sign-in. | 2026-06-07 | No stored passwords (only public key / provider subject id) → least PII; reuses identities the dev audience already has. |
+| **Conflict resolution** (OQ-23) | **Pragmatic hybrid:** per-field LWW + OR-set tags + tombstones, hybrid logical clocks; long-text conflicts kept as conflict copies. Built in-house; on-device merge. | 2026-06-07 | Single-user multi-device → full CRDT is overkill and a cross-platform dep burden (NFR-DEP); hybrid is lossless for the common case and never silently loses data (NFR-REL-3). |
 | **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
 | **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**. Small/utility code is **built in-house** (no axios-style deps); external packages **only for big features** (e.g. the text editor), under the version-aging policy. No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the platform + build small things ourselves; reserve deps for what's too big to reimplement (NFR-DEP-4/5/6). |
 
@@ -165,8 +166,40 @@ and [NFR-DEP-10](04-non-functional-requirements.md#dependency--supply-chain-poli
   the storage provider can't read it. Key management is an [open question](09-open-questions.md).
 - **Integration tokens** may also be kept (encrypted) in BYO storage so every device
   can poll after a single connect — *proposed*, see open questions.
-- **Sync & conflicts:** local-first multi-device editing needs a conflict-resolution
-  strategy (CRDT vs last-write-wins vs per-field). [Open](09-open-questions.md).
+- **Sync & conflicts:** resolved via a **pragmatic hybrid** strategy (OQ-23) — see the
+  Conflict resolution section below.
+
+## Conflict resolution — **decided: pragmatic hybrid** (OQ-23)
+
+DevTriage is **single-user across the user's own devices** (no real-time multi-user
+collaboration), so full collaborative-CRDT machinery is unnecessary. The bar is
+lossless merge for the common case and **no silent data loss** for the rare
+concurrent-edit case ([NFR-REL-3](04-non-functional-requirements.md)). A full CRDT
+(Automerge/Yjs-class) was rejected: it would need the *same* engine working identically
+across TS + Swift + Kotlin — a heavy dependency or error-prone reimplementation
+([NFR-DEP](04-non-functional-requirements.md)) — for concurrent-text merging we don't
+need.
+
+**The strategy:**
+
+- **Per-record, per-field merge.** Each entity has a stable id; each field carries a
+  logical timestamp. Concurrent edits to *different* fields both survive (lossless for
+  the common case).
+- **Scalar fields → last-write-wins** by logical timestamp.
+- **Tags/labels → add-wins set (OR-set)** so concurrent add/remove don't clobber.
+- **Deletes → tombstones** (with a retention window) so a delete isn't resurrected by a
+  concurrent edit.
+- **Long text (note/idea body):** attempt a 3-way/line merge; if it can't merge
+  cleanly, **keep both as a conflict copy** flagged for the user — never silently
+  discard. May upgrade *just this field* to a text-CRDT later if live collaboration is
+  ever wanted.
+- **Timestamps = hybrid logical clock** (logical counter + wall-clock), not raw device
+  clocks, so clock skew can't distort ordering.
+- These structures (LWW-register map, OR-set, tombstones) are small CRDTs **built
+  in-house** — no heavy dependency. The only "too big to build" piece (a sequence
+  text-CRDT) is deferred.
+- **Server role:** the opaque version vector ([OQ-26](09-open-questions.md)) only helps
+  detect/order changes; the **merge runs on-device** (the server can't read content).
 
 ## Sync coordination (server-side, E2EE — recommended)
 
