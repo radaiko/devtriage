@@ -107,12 +107,13 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 
 | ID | Priority | Requirement |
 | --- | --- | --- |
+| FR-SET-0 | 🔴 | The user can **create an account and log in**. The account holds only minimal identity (id + auth identity + timestamps); it never stores user content (see [NFR-PRIV-1](04-non-functional-requirements.md)). Auth mechanism is [OQ-22a](09-open-questions.md). |
 | FR-SET-1 | 🔴 | The user can connect a **bring-your-own storage** backend to enable cross-device sync, and test/disconnect it. |
 | FR-SET-2 | 🔴 | The user can add, test, and revoke external integration credentials. |
 | FR-SET-3 | 🔴 | Integration credentials and BYO-storage credentials are stored securely **on-device** (platform secure store) and never sent to the DevTriage server (see NFR-SEC). |
 | FR-SET-4 | 🟠 | The user can configure sync frequency and extraction mode. |
 | FR-SET-5 | 🟠 | The user can export their data (data already lives in their own storage, but a portable export is provided). |
-| FR-SET-6 | 🟠 | Whether any DevTriage-level login exists at all is [OQ-22](09-open-questions.md); if present, it must not require the server to store user content. |
+| FR-SET-6 | 🔴 | The DevTriage login must not require the server to store any user content — only minimal account/identity data (see [NFR-PRIV-1](04-non-functional-requirements.md)). |
 
 ## Traceability
 

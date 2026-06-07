@@ -26,6 +26,7 @@
 | **Client architecture** | **Local-first.** Each client holds its own data and is the working source of truth. | 2026-06-07 | Required once the server holds no content. |
 | **Cross-device sync** | **Bring-your-own storage (BYO)** for content, **optionally coordinated** by a thin server-side E2EE sync service. | 2026-06-07 | Content travels through the user's own storage; the server may coordinate (change-notify / version / key-exchange) without reading content. |
 | **Initial BYO backends** (OQ-21) | **WebDAV, Google Drive, Dropbox.** | 2026-06-07 | All HTTP-reachable from mobile+web → in-house adapters. Git-repo (mobile/git issues, NFR-DEP) and iCloud (Apple-only) excluded initially. |
+| **Accounts / identity** (OQ-22) | **Minimal accounts required** (id + auth identity + timestamps; aggregate metrics). No content/tokens/items. | 2026-06-07 | Trustworthy user count + active-user metrics; gates the CORS proxy against abuse; anchors per-user sync-coordination. Auth mechanism = OQ-22a. |
 | **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
 | **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**. Small/utility code is **built in-house** (no axios-style deps); external packages **only for big features** (e.g. the text editor), under the version-aging policy. No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the platform + build small things ourselves; reserve deps for what's too big to reimplement (NFR-DEP-4/5/6). |
 
@@ -205,12 +206,23 @@ Constraints on this layer:
 See [03 — Integration Requirements](03-integration-requirements.md) for item-level
 detail.
 
-## Auth / identity
+## Auth / identity — **decided: minimal accounts required** (OQ-22)
 
-With no server-side storage, DevTriage may need **no accounts of its own**: a user's
-"identity" is their connected integrations plus their BYO storage. The open items are
-whether any login is needed at all and how to protect the CORS proxy from abuse — see
-[09 — Open Questions](09-open-questions.md).
+DevTriage **requires a user account / login**. Accounts give the operator a
+trustworthy **user count** and active-user metrics (an anonymous device heartbeat would
+only count devices, reset on reinstall, and can't dedupe a person across web+iOS+Android),
+and they double as the **gate that stops the CORS proxy being an open relay**
+([NFR-SEC-7](04-non-functional-requirements.md)) and the **per-user anchor for the E2EE
+sync-coordination metadata** ([OQ-26](09-open-questions.md)).
+
+**Data minimization — this does not break the privacy promise.** An account is the
+smallest possible record: a user id, an auth identity, and timestamps (e.g. created /
+last-seen), plus **aggregate** usage metrics. The server still stores **no notes,
+todos, documents, integration tokens, or fetched items** — those stay on-device and in
+BYO storage.
+
+The remaining sub-decision is the **auth mechanism** (passkeys vs social login vs
+email+password) — see [OQ-22a](09-open-questions.md).
 
 ## Security posture (summary)
 

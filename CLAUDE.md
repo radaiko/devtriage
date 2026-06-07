@@ -40,13 +40,13 @@ implementation work is expected and welcome.
   not propose React Native / Flutter / other cross-platform JS runtimes for mobile.
 - **The server stores no customer content.** DevTriage is a **hosted multi-tenant
   service** run by the project owner on a **Hetzner VM**, but the server persists **no
-  documents/notes/todos, no integration tokens, and no fetched items**. It **may** hold
-  only **E2EE / opaque sync-coordination metadata** (version pointers, change
-  notifications, encrypted key-exchange) that it cannot read. Clients are
-  **local-first**; content syncs through the user's **own storage (BYO)** with
-  client-side encryption; GitHub/Jira are **polled client-side** (tokens stay
-  on-device). Do not introduce a server-side store of readable user content. Captured
-  as `NFR-PRIV`.
+  documents/notes/todos, no integration tokens, and no fetched items**. It stores only
+  **minimal account/identity records** (id + auth identity + timestamps) for login and
+  user-count metrics, **aggregate** usage metrics, and optionally **E2EE / opaque
+  sync-coordination metadata** it cannot read. Clients are **local-first**; content
+  syncs through the user's **own storage (BYO)** with client-side encryption;
+  GitHub/Jira are **polled client-side** (tokens stay on-device). Do not introduce a
+  server-side store of readable user content. Captured as `NFR-PRIV`.
 
 ## How requirements are organized
 

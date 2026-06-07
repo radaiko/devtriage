@@ -23,5 +23,6 @@ Shared vocabulary for DevTriage. Keep terms here consistent across all documents
 | **Sync coordination (E2EE)** | Optional thin server-side layer holding only opaque/encrypted metadata (version pointers, change notifications, key-exchange) to speed sync — never readable content. |
 | **CORS proxy** | The stateless server component that forwards web-client requests to provider APIs that disallow browser-origin calls; stores nothing. |
 | **Hosted service** | DevTriage is operated by the project owner on a Hetzner VM (not self-hosted by end users), yet the server stores no customer content. |
+| **Account** | A required, minimal identity record on the server (id + auth identity + timestamps) used for login and user-count metrics. Holds no user content, tokens, or fetched items. |
 | **FR-* / NFR-*** | Functional / Non-functional requirement IDs used for traceability. |
 | **OQ-*** | Open question IDs in [09 — Open Questions](requirements/09-open-questions.md). |

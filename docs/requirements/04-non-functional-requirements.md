@@ -41,7 +41,8 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 
 | ID | Priority | Requirement |
 | --- | --- | --- |
-| NFR-PRIV-1 | 🔴 | The hosted server stores **no customer content** — no documents/notes/todos, no integration tokens, no fetched items. It **may** store only **E2EE/opaque sync-coordination metadata** it cannot read (see [06](06-architecture-and-tech-decisions.md), [OQ-26](09-open-questions.md)). A wiped server loses no readable user content. |
+| NFR-PRIV-1 | 🔴 | The hosted server stores **no customer content** — no documents/notes/todos, no integration tokens, no fetched items. It stores only: (a) **minimal account/identity** records (id, auth identity, timestamps) for login and user-count metrics, (b) **aggregate** usage metrics, and (c) optional **E2EE/opaque sync-coordination metadata** it cannot read (see [06](06-architecture-and-tech-decisions.md), [OQ-26](09-open-questions.md)). A wiped server loses no readable user content. |
+| NFR-PRIV-1a | 🔴 | **Account data minimization** — store the least possible for accounts; no content is ever attached to an account, and metrics are aggregate (no per-user content/behavior profiles). |
 | NFR-PRIV-2 | 🔴 | User content lives only on the user's devices and in the user's connected **BYO storage**, encrypted client-side so the storage provider cannot read it. |
 | NFR-PRIV-3 | 🔴 | No user content is sent to third parties except (a) the integrations the user explicitly connects and (b) the BYO storage the user chooses. |
 | NFR-PRIV-4 | 🟠 | The user can export and delete all their data; deletion is effective because nothing is retained server-side. |
