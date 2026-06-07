@@ -54,8 +54,9 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | --- | --- | --- |
 | FR-INT-0 | 🔴 | Integration polling happens **client-side**; tokens are stored on-device (and optionally in encrypted BYO storage — [OQ-25](09-open-questions.md)), never on the server. |
 | FR-INT-0b | 🔴 | On **web**, providers browsers can't call directly (Jira, WebDAV) are reached via a **local companion app** on the user's machine that holds the token locally; provider tokens never transit the DevTriage server ([OQ-8a](09-open-questions.md)). |
-| FR-INT-1 | 🔴 | The user can connect a GitHub account/credential. |
-| FR-INT-2 | 🔴 | The user can connect a Jira account/credential. |
+| FR-INT-0c | 🔴 | Connectors are **read-only, permanently** (OQ-9): least-privilege read-only scopes; DevTriage never modifies a source. |
+| FR-INT-1 | 🔴 | The user can connect a GitHub account/credential, and **multiple GitHub connections** (e.g. work + personal) (OQ-11). |
+| FR-INT-2 | 🔴 | The user can connect a Jira account/credential, and **multiple Jira connections** (e.g. multiple sites) (OQ-11). |
 | FR-INT-3 | 🔴 | DevTriage collects GitHub **issues assigned to the user**. |
 | FR-INT-4 | 🔴 | DevTriage collects GitHub **pull requests authored by or requesting review from the user**. |
 | FR-INT-5 | 🔴 | DevTriage collects Jira **issues assigned to the user**. |
@@ -64,8 +65,9 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | FR-INT-8 | 🔴 | Each external item retains a deep link back to its source (GitHub/Jira URL). |
 | FR-INT-9 | 🟠 | When an external item is closed/resolved at the source, its DevTriage representation reflects that on the next sync. |
 | FR-INT-10 | 🟠 | The user can scope collection (e.g. specific repos/orgs, Jira projects/JQL). |
-| FR-INT-11 | 🟢 | Limited write-back (e.g. mark Jira done / close GitHub issue) — pending decision. |
+| FR-INT-11 | — | ~~Limited write-back~~ — **rejected (OQ-9): DevTriage is read-only permanently; no write-back.** |
 | FR-INT-12 | 🟢 | Pluggable connector model so further sources can be added later. |
+| FR-INT-13 | 🔴 | Each external item is labeled with the connection/account it came from (OQ-11). |
 
 ## Unified triage — `FR-TRIAGE`
 
@@ -75,7 +77,7 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | FR-TRIAGE-2 | 🔴 | The user can filter by source, project, tag, priority, due date, and status. |
 | FR-TRIAGE-3 | 🔴 | The user can sort and group items (e.g. by source, priority, due date). |
 | FR-TRIAGE-4 | 🔴 | The user can search across all items. |
-| FR-TRIAGE-5 | 🔴 | The user can complete/dismiss an item from the unified view. |
+| FR-TRIAGE-5 | 🔴 | The user can complete/dismiss an item from the unified view. For external items this is a **local-only** triage state (OQ-10): it clears the inbox but **never** closes/changes the source. |
 | FR-TRIAGE-6 | 🟠 | The user can snooze/defer an item to reappear later. |
 | FR-TRIAGE-7 | 🟠 | The user can assign an external item to a local project and/or add local tags and notes to it without altering the source. |
 | FR-TRIAGE-8 | 🟢 | Saved/custom views (e.g. "Today", "Needs review"). |

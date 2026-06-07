@@ -11,7 +11,7 @@ Shared vocabulary for DevTriage. Keep terms here consistent across all documents
 | **Action item** | A task-like line inside a note/idea (e.g. a `- [ ]` checkbox) that can become a Todo. |
 | **Auto-extraction / Auto-collection** | Detecting action items inside notes/ideas and surfacing them as Todos. |
 | **External item** | A GitHub or Jira item assigned to the user, collected by a connector and shown in the inbox. A read model — the external system stays the source of truth. |
-| **Connector** | A server-side module that authenticates to an external system and syncs external items (e.g. the GitHub connector, the Jira connector). |
+| **Connector** | A **client-side** module that authenticates to an external system (token on-device) and syncs external items (e.g. the GitHub/Jira connectors). **Read-only** — never modifies the source (OQ-9). Multiple connections per source are supported (OQ-11). |
 | **Unified inbox** | The single view combining personal Todos and External items for triage. A view, not a stored entity. |
 | **Triage** | The act of prioritizing, snoozing, grouping, completing, or dismissing items in the inbox. |
 | **Local overlay** | User-applied metadata (tags, priority, snooze, notes) on an External item that does not modify the source. |

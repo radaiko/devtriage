@@ -15,8 +15,13 @@ external systems. It expands on [`FR-INT`](02-functional-requirements.md#integra
 - Collected items are stored as **external items** (a read model) in the client's local
   store and synced via the user's BYO storage. DevTriage is a triage layer; the external
   system remains the source of truth (see [05 — Data Model](05-data-model.md)).
-- Connectors are **read-only** by default. Any write-back is a separate, explicitly
-  opt-in capability (see open questions).
+- Connectors are **read-only — permanently** (OQ-9). DevTriage **never modifies the
+  source**: no commenting, closing, or status transitions. Completing or dismissing a
+  collected item is a **local-only triage state** (OQ-10) that clears it from the inbox
+  without touching upstream. Request **least-privilege read-only token scopes**.
+- **Multiple connections per source are supported** (OQ-11) — e.g. work + personal
+  GitHub, multiple Jira sites. Each external item is labeled by its originating
+  connection.
 - Sync is **incremental** where the source API allows, to respect rate limits.
 - **Background collection while the app is closed is limited** (especially on web),
   since polling is client-side — an accepted trade-off of the "server stores nothing"
@@ -26,7 +31,8 @@ external systems. It expands on [`FR-INT`](02-functional-requirements.md#integra
 
 | ID | Priority | Requirement |
 | --- | --- | --- |
-| INT-COM-1 | 🔴 | Authenticate using a user-supplied credential (token) per source. |
+| INT-COM-1 | 🔴 | Authenticate using a user-supplied credential (token) per source; support **multiple connections per source** (OQ-11), each independently authenticated and labeled. |
+| INT-COM-1a | 🔴 | Operate **read-only** (OQ-9): request least-privilege read-only scopes; never write to the source. |
 | INT-COM-2 | 🔴 | Provide a "test connection" action that verifies the credential and identity. |
 | INT-COM-3 | 🔴 | Resolve and cache the user's identity on the source (to determine "assigned to me"). |
 | INT-COM-4 | 🔴 | Run a periodic sync and an on-demand refresh. |
@@ -109,12 +115,13 @@ priority, snooze, notes — without modifying the source (`FR-TRIAGE-7`).
 
 ## Out of scope for first release
 
-- Bi-directional sync / write-back beyond minimal status reflection.
+- **Write-back of any kind** — DevTriage is read-only **permanently** (OQ-9); this is a
+  product decision, not a deferral. Status still flows **in** (source → us) via sync.
 - Sources other than GitHub and Jira (the connector model keeps the door open —
   `FR-INT-12`).
 - GitHub Enterprise Server and Jira Server/Data Center (future).
 
 ## Open integration questions
 
-See [09 — Open Questions](09-open-questions.md): whether to support write-back, and the
-local-companion specifics ([OQ-29](09-open-questions.md)).
+See [09 — Open Questions](09-open-questions.md): the local-companion specifics
+([OQ-29](09-open-questions.md)).

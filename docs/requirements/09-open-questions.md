@@ -21,9 +21,9 @@ phase. Owner = project owner unless stated.
 | OQ-7 | ✅ **RESOLVED — Jira Atlassian API token + email (Basic)** (2026-06-07). | Stored on-device; no OAuth flow. Jira Cloud first; web reaches Jira via the local companion (no browser CORS — [OQ-8a](09-open-questions.md)). See [03](03-integration-requirements.md#jira-connector--int-jira). |
 | OQ-8 | **Polling vs webhooks** for freshness. | Client-side polling is decided; webhooks are impractical without a stateful server. Background sync while apps are closed is limited (accepted trade-off). |
 | OQ-8a | ✅ **RESOLVED — Local companion app for web non-CORS providers; no server token proxy** (2026-06-07). | GitHub on web is CORS-direct; Jira/WebDAV on web go through a cross-platform **local companion** on the user's machine (token never touches our server). Companion **required** for those providers on web (no fallback). Mobile always direct. See [06](06-architecture-and-tech-decisions.md). Spawns OQ-29. |
-| OQ-9 | **Write-back** to GitHub/Jira (e.g. close/resolve) — in or out? | Currently out of initial scope (FR-INT-11). Confirm. |
-| OQ-10 | Should completing an external item in DevTriage be **purely local** or optionally reflect to the source? | Default local-only. |
-| OQ-11 | Multi-account per source (e.g. two GitHub orgs / personal + work)? | Affects connection model & data shape. |
+| OQ-9 | ✅ **RESOLVED — Read-only permanently; no write-back** (2026-06-07). | Product decision, not a deferral. Least-privilege read-only token scopes; DevTriage never comments/closes/transitions a source. Status still flows **in** via sync. See [03](03-integration-requirements.md), FR-INT-0c/11. |
+| OQ-10 | ✅ **RESOLVED — Completion is local-only** (2026-06-07). | Follows from OQ-9. Completing/dismissing an external item is a local overlay state (`done locally`/`dismissed`) that clears the inbox without touching upstream. See FR-TRIAGE-5, [05](05-data-model.md). |
+| OQ-11 | ✅ **RESOLVED — Multiple connections per source, from v1** (2026-06-07). | E.g. work + personal GitHub, multiple Jira sites. Each `ExternalItem` carries its `connection id` and is labeled by account. See FR-INT-1/2/13, INT-COM-1, [05](05-data-model.md). |
 
 ## Product behavior
 

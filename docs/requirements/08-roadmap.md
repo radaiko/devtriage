@@ -64,6 +64,5 @@ outcome-oriented; dates are intentionally omitted until the stack is locked.
 ## Later / candidate (not committed)
 
 - Real-time push updates (FR-SYNC-4).
-- Limited write-back to sources (FR-INT-11).
 - Additional connectors (GitLab, Linear, etc.) via the connector model.
 - LLM-assisted extraction, user-controlled (FR-EXTRACT-7).

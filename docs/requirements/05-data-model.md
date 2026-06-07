@@ -41,15 +41,18 @@ extraction; the difference is UX/intent (a *note* is a fuller Markdown document;
   the existing promotion path.
 
 ### ExternalItem (read model)
-A GitHub/Jira item assigned to the user, collected by a connector.
-- `id` (DevTriage-local), `source` (github | jira), `external id` (stable),
-  `type` (issue | pull_request | jira_issue), `title`, `url`, `status`
-  (normalized open/closed), `source status` (raw), `priority`, `timestamps`.
+A GitHub/Jira item assigned to the user, collected by a connector. **Read-only** — the
+source is never modified (OQ-9).
+- `id` (DevTriage-local), `connection id` (which `IntegrationConnection` it came from —
+  supports multiple accounts per source, OQ-11), `source` (github | jira),
+  `external id` (stable), `type` (issue | pull_request | jira_issue), `title`, `url`,
+  `status` (normalized open/closed), `source status` (raw), `priority`, `timestamps`.
 - Source-specific fields: repo, number, review state (GitHub); key, project, issue
   type, status category (Jira).
 - **Local overlay** (user-applied, does not change the source — FR-TRIAGE-7):
   `local tags[]`, `local project`, `local priority`, `snooze until`, `local note`,
-  `dismissed`.
+  `dismissed`, `done locally` (a **local-only** completion that clears the inbox without
+  touching upstream — OQ-10).
 
 ### Project
 A grouping for todos, notes, and (via overlay) external items.
@@ -99,9 +102,10 @@ filtering/sorting/grouping applied across both.
 
 - An extracted Todo always references a valid source Note (or records that the source
   was deleted) — FR-EXTRACT-3.
-- ExternalItems are uniquely keyed by `(source, external id)` to prevent duplicates on
-  re-sync — INT-COM-5.
+- ExternalItems are uniquely keyed by `(connection id, source, external id)` to prevent
+  duplicates on re-sync while keeping the same upstream item distinct across accounts —
+  INT-COM-5, OQ-11.
 - Deleting/Failing a sync must not delete previously collected ExternalItems —
   NFR-REL-2.
-- Local overlay data on an ExternalItem is never pushed to the source unless explicit
-  write-back is enabled (out of scope initially).
+- Local overlay data on an ExternalItem is **never** pushed to the source — DevTriage is
+  read-only permanently (OQ-9).
