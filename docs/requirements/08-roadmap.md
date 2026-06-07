@@ -63,6 +63,6 @@ outcome-oriented; dates are intentionally omitted until the stack is locked.
 
 ## Later / candidate (not committed)
 
-- Real-time push updates (FR-SYNC-4).
+- Full real-time push updates (FR-SYNC-7), building on the wake channel (FR-SYNC-6).
 - Additional connectors (GitLab, Linear, etc.) via the connector model.
 - LLM-assisted extraction, user-controlled (FR-EXTRACT-7).

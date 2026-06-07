@@ -6,8 +6,9 @@
 
 ## Firm constraints
 
-1. **Native mobile clients** — iOS in **Swift/SwiftUI**, Android in
-   **Kotlin/Jetpack Compose**. No cross-platform JS runtimes (React Native, Flutter).
+1. **Native mobile clients** — iOS in **Swift/SwiftUI** (**iOS 18+**), Android in
+   **Kotlin/Jetpack Compose** (**Android 14+ / API 34**) (OQ-18). No cross-platform JS
+   runtimes (React Native, Flutter).
 2. **Minimal dependency surface** — avoid large third-party dependency trees,
    **especially npm**. See [NFR-DEP](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
 3. **The server stores no customer content.** DevTriage is operated as a hosted
@@ -36,6 +37,10 @@
 | **Web non-CORS access** (OQ-8a) | **Local companion app** (cross-platform, Go) for web + Jira/WebDAV; **no server token proxy**. Required for those providers on web (no fallback). | 2026-06-07 | Keeps tokens entirely off our server; GitHub stays CORS-direct; bonus desktop background sync. |
 | **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
 | **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**. Small/utility code is **built in-house** (no axios-style deps); external packages **only for big features** (e.g. the text editor), under the version-aging policy. No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the platform + build small things ourselves; reserve deps for what's too big to reimplement (NFR-DEP-4/5/6). |
+| **Integration model** (OQ-9/10/11) | **Read-only, permanently** (least-privilege read scopes; never modifies sources); completion is **local-only**; **multiple connections per source** from v1. | 2026-06-07 | Triage layer; source stays source of truth; smaller token blast radius; work+personal accounts are common. |
+| **Update freshness** (OQ-5) | **Poll-first** integrations (no provider webhooks); near-real-time content sync between active devices via the wake channel; background push contentless & phased. | 2026-06-07 | Webhooks would expose content/tokens to the server (NFR-PRIV); the wake channel already gives live sync. |
+| **Mobile OS targets** (OQ-18) | **iOS 18+**, **Android 14+ (API 34)**. | 2026-06-07 | Brand-new app → newest-API-only minimizes back-compat burden; revisit on device-reach data. |
+| **License** (OQ-19) | **Source-available — Business Source License (BSL 1.1)**; parameters TBD (OQ-30). | 2026-06-07 | Readable/self-hostable but bars a competing hosted service → keeps the hosted business defensible. |
 
 ## High-level shape
 

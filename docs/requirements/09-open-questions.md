@@ -11,7 +11,7 @@ phase. Owner = project owner unless stated.
 | OQ-2 | ✅ **RESOLVED — Platform-first vanilla TypeScript web client, built with esbuild; build small things in-house, external packages only for big features under a version-aging policy** (2026-06-07). | Lean on native browser APIs (Web Components, IndexedDB, Web Crypto, fetch, History API); reimplement small/utility code (HTTP, reactivity, routing, small parsing) ourselves — no axios-style deps. External packages reserved for genuinely large features (e.g. the rich-text editor), chosen as the latest vuln-free version released ≥1 month ago (NFR-DEP-4/5/6), vendored/pinned/SHA-checked. No npm runtime dependency tree. Recorded in [06 — Decided](06-architecture-and-tech-decisions.md#decided) and the Web client section. |
 | OQ-3 | ✅ **RESOLVED — No server-side content store; clients are local-first; cross-device sync via bring-your-own storage (BYO), optionally coordinated by a thin server-side E2EE layer** (2026-06-07). | No server-side content database. Each client holds its own store; users connect their own storage backend (WebDAV/S3/Git/cloud-drive) as the sync hub, with client-side encryption. The server may hold opaque E2EE sync-coordination metadata only (OQ-26). See [06 — Decided](06-architecture-and-tech-decisions.md#decided). Spawns OQ-21..OQ-26. |
 | OQ-4 | **Client protocols** — plain REST/JSON (leaning). | The server is only a static host + OAuth callback + sync-coordination endpoints, so there's no rich app API to design. |
-| OQ-5 | **Real-time updates** now or later? | Proposed: poll/refresh first, push later (FR-SYNC-4). Push is harder with no stateful server. |
+| OQ-5 | ✅ **RESOLVED — Poll-first; near-real-time content sync via the wake channel; full push later** (2026-06-07). | v1: integrations are **poll + on-demand refresh** (no provider webhooks — a server webhook receiver would expose content/tokens, breaking NFR-PRIV); the companion improves desktop freshness by polling in the background. Content sync between **active** devices is near-real-time via the live wake channel (FR-SYNC-6); background (app-closed) wake is contentless push, phased ([OQ-26a](09-open-questions.md)). Full real-time = FR-SYNC-7 (later). |
 
 ## Integrations
 
@@ -40,7 +40,7 @@ phase. Owner = project owner unless stated.
 | --- | --- | --- |
 | OQ-16 | ✅ **RESOLVED — Multi-tenant hosted service, but no server-side per-user data** (2026-06-07). | Service is for everyone, yet the server holds no customer data; "multi-user" concerns move to the BYO-storage/identity model. See OQ-22. |
 | OQ-17 | ✅ **RESOLVED — Hosted by the project owner on a Hetzner VM; not end-user self-hosted** (2026-06-07). | Stateless app host + OAuth callback + E2EE sync-coordination (no token proxy). See [06 — Decided](06-architecture-and-tech-decisions.md#decided). |
-| OQ-18 | **Minimum OS versions** for iOS/Android targets. | Influences SwiftUI/Compose API availability. |
+| OQ-18 | ✅ **RESOLVED — iOS 18+ and Android 14+ (API 34)** (2026-06-07). | Newest-API-only target for a brand-new app: minimal back-compat burden, latest SwiftUI/Compose. Revisit if device-reach data argues otherwise. |
 
 ## BYO storage, sync & identity *(spawned by OQ-3)*
 
@@ -62,7 +62,8 @@ phase. Owner = project owner unless stated.
 
 | # | Question | Notes |
 | --- | --- | --- |
-| OQ-19 | **License** for the repository. | README currently says TBD. |
+| OQ-19 | ✅ **RESOLVED — Source-available, Business Source License (BSL 1.1)** (2026-06-07). | Source readable/self-hostable; running it as a competing hosted service is barred — keeps the hosted business defensible. See README. Spawns OQ-30. |
+| OQ-30 | **BSL parameters** — Change Date, Change License (e.g. converts to Apache-2.0/GPL after N years), and the Additional Use Grant wording; add the `LICENSE` file before first publish. | Spawned by OQ-19. |
 | OQ-20 | Repository structure once coding begins — **monorepo** (backend + web + iOS + android) vs separate repos. | Monorepo likely simplest for a solo/small effort. |
 
 ---
