@@ -32,8 +32,10 @@ implementation work is expected and welcome.
   - **Reserve external packages for genuinely large features** that are too much effort
     to reimplement (e.g. a rich text / Markdown editor).
   - **Version-aging rule:** when adding a dependency, pick the latest version that has
-    **no known vulnerabilities** and was **released ≥1 month ago**; vendor it
-    (commit + pin + checksum). Never auto-update via background `npm install`.
+    **no known vulnerabilities** and was **released ≥1 month ago**.
+  - **Pin exactly & update manually.** Pin to an exact version (no `^`/`~`/ranges),
+    vendor it (commit + checksum). **No automated updates / update bots** — every bump
+    is human-initiated, reviewed, and re-pinned.
 - **Native mobile only.** iOS = Swift/SwiftUI, Android = Kotlin/Jetpack Compose. Do
   not propose React Native / Flutter / other cross-platform JS runtimes for mobile.
 - **The server stores no customer content.** DevTriage is a **hosted multi-tenant

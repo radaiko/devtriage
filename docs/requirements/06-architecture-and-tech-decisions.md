@@ -138,9 +138,11 @@ backend). Fallback if even esbuild is unwanted: `tsc`-only emit of ES modules lo
 natively, or plain-JS no-build.
 
 **Vendoring policy (applies repo-wide):** any third-party file is committed under a
-`vendor/`-style path, pinned to an exact version with a recorded checksum, reviewed on
-intake, and updated only deliberately — never via background `npm install`. Reinforces
-[NFR-DEP-3](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
+`vendor/`-style path, pinned to an **exact** version with a recorded checksum, reviewed
+on intake, and **updated only by a deliberate, reviewed manual step** — never via
+background `npm install` or an auto-update bot. Reinforces
+[NFR-DEP-3](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep)
+and [NFR-DEP-10](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
 
 ## Bring-your-own storage (BYO sync)
 
