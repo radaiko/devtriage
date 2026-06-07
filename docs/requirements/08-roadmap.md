@@ -52,7 +52,7 @@ outcome-oriented; dates are intentionally omitted until the stack is locked.
 
 ## Phase 6 — Hardening & polish
 
-- Dependency vulnerability scanning in CI (NFR-DEP-5).
+- Dependency vulnerability scanning in CI (NFR-DEP-8).
 - Data export (FR-SET-5, NFR-PRIV-3), accessibility pass (NFR-A11Y), observability
   (NFR-OBS).
 - Deployment packaging for the Hetzner service (single stateless binary/container,

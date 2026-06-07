@@ -26,7 +26,7 @@
 | **Client architecture** | **Local-first.** Each client holds its own data and is the working source of truth. | 2026-06-07 | Required once the server holds no content. |
 | **Cross-device sync** | **Bring-your-own storage (BYO)** for content, **optionally coordinated** by a thin server-side E2EE sync service. | 2026-06-07 | Content travels through the user's own storage; the server may coordinate (change-notify / version / key-exchange) without reading content. |
 | **Integration collection** | **Client-side polling.** Apps call GitHub/Jira directly; tokens live on-device. | 2026-06-07 | Server never sees tokens or fetched items. |
-| **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**; at most a couple of tiny **vendored, zero-transitive-dependency** libs (reactive helper + Markdown). No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the browser platform + vendored micro-deps to honor NFR-DEP. |
+| **Web client** (OQ-2) | **Platform-first** (Web Components, IndexedDB, Web Crypto, fetch) **TypeScript** app built with **esbuild**. Small/utility code is **built in-house** (no axios-style deps); external packages **only for big features** (e.g. the text editor), under the version-aging policy. No npm runtime tree. | 2026-06-07 | Local-first rules out server-rendered; lean on the platform + build small things ourselves; reserve deps for what's too big to reimplement (NFR-DEP-4/5/6). |
 
 ## High-level shape
 
@@ -98,10 +98,18 @@ server-rendered approach is off the table. To honor
 we **lean on the browser platform** and add only tiny, vendored, zero-transitive
 dependencies — **no `node_modules` runtime tree, no silent updates.**
 
-**Reframe of "minimal dependencies":** the supply-chain risk is large transitive trees
-that auto-install/auto-update. A single small library that is **vendored (committed to
-the repo), version-pinned, SHA-checked, and human-reviewed** is a controlled,
-auditable surface — that is what we allow, not an npm dependency tree.
+**Default = build it ourselves.** Small/utility functionality is reimplemented in-house
+on native APIs rather than pulled as a package — we can make it leaner and more
+performant and carry zero supply-chain risk (e.g. use native `fetch`, **not** axios;
+hand-roll reactivity, routing, small parsing). This is [NFR-DEP-4](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
+
+**Exception = genuinely large features.** Where reimplementing is too much effort —
+most clearly a **rich text / Markdown editor** — we use an external package
+([NFR-DEP-5](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep)).
+When we do, we follow the **version-aging policy**: the latest version with **no known
+vulnerabilities** that was **released at least a month ago**
+([NFR-DEP-6](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep)),
+vendored/pinned/SHA-checked.
 
 **Platform-first mapping (zero dependencies):**
 
@@ -112,15 +120,17 @@ auditable surface — that is what we allow, not an npm dependency tree.
 | Poll GitHub/Jira | **fetch** |
 | UI components | **Web Components** (Custom Elements + `<template>`) |
 | Routing | **History API / URLPattern** |
-| Reactivity | small hand-rolled store, or one tiny vendored lib |
+| Reactivity | small **hand-rolled** store/signals |
+| HTTP | native **fetch** (no axios-style client) |
+| Markdown parse (rendering + checkbox detection) | **hand-rolled** subset (needed for FR-EXTRACT anyway) |
 
-**Allowed vendored micro-deps (each a single small file, no transitive deps, to be
-vetted):**
+**In-house by default:** reactivity, routing, HTTP, and small parsing are built on the
+native APIs above — no packages.
 
-- at most **one ~1KB reactive helper** (e.g. a VanJS-style lib) if hand-rolled
-  reactivity proves painful, and
-- **one tiny Markdown parser** (the single genuine gap), or parse a restricted Markdown
-  subset in-house (we already need checkbox/action-item parsing for FR-EXTRACT).
+**External package expected for one big feature:** the **rich text / Markdown editor**
+is the realistic case where reimplementing is not worth it. Selected per the
+version-aging policy (NFR-DEP-5/6) and vendored. Any other external dependency must
+clear the same "too big to build ourselves" bar.
 
 **Build tooling:** author in **TypeScript**, bundle/transpile with **esbuild** — a
 single native Go binary with no dependency tree of its own (symmetry with the Go
@@ -200,7 +210,7 @@ whether any login is needed at all and how to protect the CORS proxy from abuse 
 - The server never stores tokens or content; the web CORS proxy handles them only in
   transit, over TLS (NFR-SEC-2/4).
 - Every dependency pinned and integrity-checked (NFR-DEP-3); CI dependency scanning
-  once code begins (NFR-DEP-5).
+  once code begins (NFR-DEP-8).
 
 ## What this buys us against the constraints
 

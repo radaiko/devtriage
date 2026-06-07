@@ -13,9 +13,12 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | NFR-DEP-1 | 🔴 | Minimize the number of third-party runtime dependencies; prefer standard libraries. |
 | NFR-DEP-2 | 🔴 | Avoid large, deeply-transitive dependency trees — **the npm ecosystem in particular is to be avoided** for production code. |
 | NFR-DEP-3 | 🔴 | Every third-party dependency must be deliberately chosen, pinned to an exact version, and integrity-checked (lockfile / checksums / vendoring). |
-| NFR-DEP-4 | 🟠 | Dependencies should be auditable; prefer well-maintained, widely-trusted libraries with few transitive deps. |
-| NFR-DEP-5 | 🟠 | Automated dependency vulnerability scanning runs in CI once implementation begins. |
-| NFR-DEP-6 | 🟠 | Document and justify each added dependency (what it's for, why not stdlib). |
+| NFR-DEP-4 | 🔴 | **Reimplement small/utility functionality in-house** using native/standard APIs rather than adding a dependency (e.g. use native `fetch`, **not** an HTTP client like axios; hand-roll reactivity, routing, small parsing). We can keep these leaner, more performant, and dependency-free. |
+| NFR-DEP-5 | 🔴 | **External packages are reserved for genuinely large features** that are impractical to reimplement (e.g. a rich text / Markdown editor). The bar is "too much effort to build and maintain ourselves," not "convenient." |
+| NFR-DEP-6 | 🔴 | **Dependency intake / version-aging policy:** when a dependency is justified, adopt the **latest version that (a) has no known vulnerabilities and (b) was released at least one month ago.** The cooldown window guards against freshly-published compromised releases. |
+| NFR-DEP-7 | 🟠 | Dependencies should be auditable; prefer well-maintained, widely-trusted libraries with few (ideally zero) transitive deps. |
+| NFR-DEP-8 | 🟠 | Automated dependency vulnerability scanning runs in CI once implementation begins. |
+| NFR-DEP-9 | 🟠 | Document and justify each added dependency (what it's for, why not stdlib/in-house, the version chosen and its release date). |
 
 ## Security — `NFR-SEC`
 

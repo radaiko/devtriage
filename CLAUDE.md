@@ -26,8 +26,14 @@ implementation work is expected and welcome.
 
 - **Minimal dependency surface.** Avoid pulling in large third-party dependency
   trees, especially from the npm ecosystem — the user has explicitly flagged
-  supply-chain attack risk. Prefer standard libraries and a small set of audited
-  dependencies. Captured as `NFR-DEP`.
+  supply-chain attack risk. Captured as `NFR-DEP`. In practice:
+  - **Build small/utility things in-house** on native/standard APIs (e.g. native
+    `fetch`, **not** axios; hand-rolled reactivity, routing, small parsing).
+  - **Reserve external packages for genuinely large features** that are too much effort
+    to reimplement (e.g. a rich text / Markdown editor).
+  - **Version-aging rule:** when adding a dependency, pick the latest version that has
+    **no known vulnerabilities** and was **released ≥1 month ago**; vendor it
+    (commit + pin + checksum). Never auto-update via background `npm install`.
 - **Native mobile only.** iOS = Swift/SwiftUI, Android = Kotlin/Jetpack Compose. Do
   not propose React Native / Flutter / other cross-platform JS runtimes for mobile.
 - **The server stores no customer content.** DevTriage is a **hosted multi-tenant
