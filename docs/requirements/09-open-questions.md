@@ -62,8 +62,8 @@ phase. Owner = project owner unless stated.
 
 | # | Question | Notes |
 | --- | --- | --- |
-| OQ-19 | ✅ **RESOLVED — Source-available, Business Source License (BSL 1.1)** (2026-06-07). | Source readable/self-hostable; running it as a competing hosted service is barred — keeps the hosted business defensible. See README. Spawns OQ-30. |
-| OQ-30 | **BSL parameters** — Change Date, Change License (e.g. converts to Apache-2.0/GPL after N years), and the Additional Use Grant wording; add the `LICENSE` file before first publish. | Spawned by OQ-19. |
+| OQ-19 | ✅ **RESOLVED — Proprietary, all rights reserved; repo public for transparency only** (2026-06-07). | Reversed the earlier BSL/source-available leaning: the owner wants **only their own use**. No OSS grant — nobody may use/copy/run/host it without written consent. Repo stays publicly viewable. `LICENSE` added. See README. |
+| OQ-30 | ❌ **OBSOLETE** (2026-06-07) — superseded by the proprietary decision in OQ-19; BSL parameters no longer apply. | — |
 | OQ-20 | ✅ **RESOLVED — Monorepo** (2026-06-07). | Backend + companion (both Go, **shared connector code**) + web (TS) + iOS (Swift) + Android (Kotlin) + docs in one repo. Solo/small effort → atomic cross-cutting changes, one CI; separate repos only pay off with independent teams/cadences. |
 
 ---

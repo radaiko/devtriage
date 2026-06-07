@@ -12,10 +12,11 @@ outcome-oriented; dates are intentionally omitted until the stack is locked.
   protocols (OQ-4); integration auth (OQ-6/7); web non-CORS via local companion
   (OQ-8a/28); read-only + local completion + multi-account (OQ-9/10/11); poll-first
   freshness (OQ-5/8); extraction default & scope (OQ-12/13); notes/ideas one entity
-  (OQ-14); OS targets (OQ-18); license = BSL (OQ-19); monorepo (OQ-20).
+  (OQ-14); OS targets (OQ-18); license = proprietary/all-rights-reserved (OQ-19);
+  monorepo (OQ-20).
 - ⬜ Remaining [open questions](09-open-questions.md) are **implementation-phase details**
-  (OQ-25/26a/27/29), the BSL parameters + `LICENSE` (OQ-30), and a future product
-  question (OQ-15, LLM features) — none block sign-off.
+  (OQ-25/26a/27/29) and a future product question (OQ-15, LLM features) — none block
+  sign-off.
 - **Exit criteria:** requirements approved; firm tech decisions recorded in
   [06 — Architecture](06-architecture-and-tech-decisions.md).
 

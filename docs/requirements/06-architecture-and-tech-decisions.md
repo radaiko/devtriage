@@ -40,7 +40,7 @@
 | **Integration model** (OQ-9/10/11) | **Read-only, permanently** (least-privilege read scopes; never modifies sources); completion is **local-only**; **multiple connections per source** from v1. | 2026-06-07 | Triage layer; source stays source of truth; smaller token blast radius; work+personal accounts are common. |
 | **Update freshness** (OQ-5) | **Poll-first** integrations (no provider webhooks); near-real-time content sync between active devices via the wake channel; background push contentless & phased. | 2026-06-07 | Webhooks would expose content/tokens to the server (NFR-PRIV); the wake channel already gives live sync. |
 | **Mobile OS targets** (OQ-18) | **iOS 18+**, **Android 14+ (API 34)**. | 2026-06-07 | Brand-new app → newest-API-only minimizes back-compat burden; revisit on device-reach data. |
-| **License** (OQ-19) | **Source-available — Business Source License (BSL 1.1)**; parameters TBD (OQ-30). | 2026-06-07 | Readable/self-hostable but bars a competing hosted service → keeps the hosted business defensible. |
+| **License** (OQ-19) | **Proprietary — all rights reserved** (`LICENSE`); repo public for transparency only, not open source. | 2026-06-07 | Owner wants sole use; no grant to anyone. Simpler and stricter than the earlier BSL leaning. |
 
 ## High-level shape
 

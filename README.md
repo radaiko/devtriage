@@ -70,8 +70,7 @@ Start here:
 
 ## License
 
-**Source-available under the Business Source License (BSL 1.1)** (OQ-19) — the source is
-readable and self-hostable, but offering DevTriage as a competing hosted service is not
-permitted. The BSL parameters (Change Date, Change License, Additional Use Grant) are
-being finalized before first publish ([OQ-30](docs/requirements/09-open-questions.md));
-the `LICENSE` file will be added then.
+**Proprietary — all rights reserved** (OQ-19). The source is published publicly for
+transparency/review only; it is **not** open source. No permission is granted to use,
+copy, modify, run, host, or distribute it without the copyright holder's prior written
+consent. See [`LICENSE`](LICENSE).
