@@ -38,7 +38,7 @@ Legend: 🔴 MUST · 🟠 SHOULD · 🟢 MAY
 | FR-EXTRACT-1 | 🔴 | DevTriage detects action items within notes/ideas and surfaces them as candidate todos. |
 | FR-EXTRACT-2 | 🔴 | At minimum, Markdown checkbox lines (`- [ ]`) are recognized as action items. |
 | FR-EXTRACT-3 | 🔴 | Each extracted todo links back to its source note and position. |
-| FR-EXTRACT-4 | 🔴 | Extraction mode is configurable per user: **auto-create** vs **suggest-and-confirm**. |
+| FR-EXTRACT-4 | 🔴 | Extraction mode is configurable per user: **auto-create** vs **suggest-and-confirm**. **Default = confidence-based hybrid** (OQ-12): auto-create from explicit checkboxes, suggest-and-confirm for fuzzy heuristic detections. |
 | FR-EXTRACT-5 | 🟠 | Heuristic detection of imperative/action sentences beyond explicit checkboxes. |
 | FR-EXTRACT-6 | 🟠 | Editing a source note keeps already-extracted todos in sync where possible (e.g. checking a box in the note completes the todo and vice-versa). |
 | FR-EXTRACT-7 | 🟢 | Optional ML/LLM-assisted extraction, runnable locally / under user control (see open questions). |
