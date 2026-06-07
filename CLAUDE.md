@@ -9,15 +9,18 @@ notes tool** that also **collects work assigned to the user from GitHub and Jira
 (issues, pull requests, tasks) into a single triage surface, available on **web,
 iOS, and Android**.
 
-## Current phase: REQUIREMENTS ONLY
+## Current phase: REQUIREMENTS FIRST (code comes later)
 
-🚫 **Do not write application code in this phase.** The repository deliberately
-contains only documentation. The current goal is to produce and refine clear,
-agreed requirements before any implementation starts.
+This is **deliberate sequencing, not a permanent ban** — implementation *will* happen
+in later sessions. The current goal is to produce and refine clear, agreed
+requirements before any implementation starts, so the repository currently contains
+documentation only.
 
-When asked to make changes, default to editing the documents under
-[`docs/requirements/`](docs/requirements/). Only start implementation work after the
-user explicitly says the requirements phase is complete.
+🚫 **Do not write application code until the user says the requirements phase is
+done.** When asked to make changes in this phase, default to editing the documents
+under [`docs/requirements/`](docs/requirements/). Once the user signals that
+requirements are complete (and the open architecture decisions are resolved),
+implementation work is expected and welcome.
 
 ## Hard constraints (do not violate without explicit sign-off)
 

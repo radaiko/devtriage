@@ -21,11 +21,13 @@ inboxes, you get a single, fast triage surface on **web, iOS, and Android**.
 
 ## Project status
 
-🟡 **Requirements phase — no code yet.**
+🟡 **Requirements phase — no code yet.** (Implementation comes next, once requirements
+are signed off.)
 
 This repository currently contains **requirements documentation only**. The goal of
 this phase is to agree on *what* DevTriage should do and the constraints it must
-respect before any implementation begins.
+respect before any implementation begins — it's deliberate sequencing, not a permanent
+documentation-only project.
 
 Start here:
 
