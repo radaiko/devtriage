@@ -12,6 +12,12 @@
 2. **Minimal dependency surface** — avoid large third-party dependency trees,
    **especially npm**. See [NFR-DEP](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
 
+## Decided
+
+| Decision | Choice | Date | Rationale (summary) |
+| --- | --- | --- | --- |
+| **Backend language** (OQ-1) | **Go** | 2026-06-07 | Std library covers HTTP server+client, JSON, crypto, `database/sql` → minimal deps (NFR-DEP); single static binary (NFR-PORT); goroutines fit I/O-bound integration polling. Rust would pull a larger async HTTP dep tree for an I/O-bound app; Kotlin would share a language with Android but lose the single-binary benefit. See details below. |
+
 ## High-level shape
 
 ```
@@ -39,9 +45,9 @@
 A **shared backend API** is the single source of truth for the three clients
 (FR-SYNC-1). Connectors run server-side on a schedule and on demand.
 
-## Backend — proposed: **Go**
+## Backend — **decided: Go** (OQ-1)
 
-**Why Go (proposed):**
+**Why Go:**
 
 - Compiles to a **single static binary** → trivial self-hosting (NFR-PORT-1).
 - **Strong standard library** (HTTP server, JSON, crypto) → very few third-party
@@ -51,9 +57,17 @@ A **shared backend API** is the single source of truth for the three clients
 - Mature, well-audited GitHub/Jira client options (or thin hand-rolled HTTP clients
   to keep deps minimal).
 
-**Alternatives considered:** Rust (great, steeper velocity), Python/FastAPI (more and
-heavier deps, not a single binary), Node/TS (rejected — conflicts with the npm
-dependency-avoidance constraint). → tracked in open questions.
+**Alternatives considered:** Rust (great safety/perf, but no stdlib HTTP → pulls an
+async dep tree, and steeper velocity for an I/O-bound app), Kotlin/JVM (would share a
+language with Android, but loses the single-binary benefit and needs a JVM/GraalVM),
+Python/FastAPI (more and heavier deps, not a single binary), Node/TS (rejected —
+conflicts with the npm dependency-avoidance constraint).
+
+**Known caveat:** Go's `database/sql` needs a SQLite driver — either `mattn/go-sqlite3`
+(mature, requires cgo / a C toolchain) or `modernc.org/sqlite` (pure-Go, larger
+transpiled dependency). This is the one deliberate dependency the storage choice
+introduces; still well within [NFR-DEP](04-non-functional-requirements.md#dependency--supply-chain-policy-nfr-dep).
+The cgo-vs-pure-Go choice is deferred until implementation.
 
 ## Storage — proposed: **SQLite (embedded)**
 

@@ -7,7 +7,7 @@ phase. Owner = project owner unless stated.
 
 | # | Question | Notes / leaning |
 | --- | --- | --- |
-| OQ-1 | **Backend language** — confirm **Go**? | Leaning Go: single binary, std-lib heavy, no npm, great concurrency (see [06](06-architecture-and-tech-decisions.md#backend--proposed-go)). Alt: Rust. |
+| OQ-1 | ✅ **RESOLVED — Backend language = Go** (2026-06-07). | Chosen for minimal deps (std-lib HTTP/JSON/crypto/sql), single static binary, and goroutine concurrency for integration polling. Recorded in [06 — Decided](06-architecture-and-tech-decisions.md#decided). One known caveat: SQLite driver (cgo vs pure-Go) deferred to implementation. |
 | OQ-2 | **Web client approach** under the npm-avoidance constraint. | Leaning server-rendered / minimal-JS to honor [NFR-DEP](04-non-functional-requirements.md). Trade-off: interactivity. |
 | OQ-3 | **Storage** — SQLite by default, Postgres optional? | Leaning SQLite for single-user self-host. |
 | OQ-4 | **API style** — REST (leaning) vs gRPC vs GraphQL. | REST is simplest for Swift/Kotlin/web. |
