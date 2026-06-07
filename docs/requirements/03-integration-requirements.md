@@ -37,8 +37,13 @@ external systems. It expands on [`FR-INT`](02-functional-requirements.md#integra
 
 ## GitHub connector — `INT-GH`
 
-**Authentication:** Personal Access Token (fine-grained preferred) and/or OAuth /
-GitHub App. Final choice in [open questions](09-open-questions.md). Supports
+**Authentication (decided — OQ-6): Personal Access Token.** Prefer a **fine-grained
+PAT** with least-privilege read scopes (issues, pull requests, metadata) for the repos/
+orgs the user selects; a **classic PAT** is allowed when the user wants broad
+"everything assigned to me across all repos" reach. The token is entered by the user and
+stored on-device (NFR-SEC-1/3) — **no OAuth flow / server callback needed**. Web calls
+GitHub directly where CORS allows (GitHub's REST API generally supports browser CORS);
+otherwise via the proxy. Token expiry/revocation is surfaced per INT-COM-6. Supports
 github.com; GitHub Enterprise is a future consideration.
 
 **What "assigned to me" means — collect:**
@@ -64,9 +69,12 @@ created/updated timestamps.
 
 ## Jira connector — `INT-JIRA`
 
-**Authentication:** Jira Cloud API token + account email (Basic), or OAuth. Final
-choice in [open questions](09-open-questions.md). Jira Cloud is the initial target;
-Jira Server/Data Center is a future consideration.
+**Authentication (decided — OQ-7): Atlassian API token + account email (Basic auth).**
+The user enters their email + API token, stored on-device (NFR-SEC-1/3) — **no OAuth
+flow / server callback needed**. Jira Cloud's REST API generally does **not** allow
+browser CORS, so the **web** client calls via the Hetzner proxy ([OQ-28](09-open-questions.md));
+mobile calls directly. Jira Cloud is the initial target; Jira Server/Data Center (which
+also supports PATs) is a future consideration.
 
 | ID | Priority | Item set |
 | --- | --- | --- |

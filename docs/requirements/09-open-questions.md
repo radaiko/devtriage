@@ -17,8 +17,8 @@ phase. Owner = project owner unless stated.
 
 | # | Question | Notes |
 | --- | --- | --- |
-| OQ-6 | **GitHub auth** — fine-grained PAT vs OAuth vs GitHub App? | Affects scopes, setup friction, multi-account. |
-| OQ-7 | **Jira auth** — API token (Basic) vs OAuth? Cloud only first? | Cloud first; Server/DC later. |
+| OQ-6 | ✅ **RESOLVED — GitHub Personal Access Token** (2026-06-07). | Fine-grained PAT with least-privilege read scopes preferred; classic PAT allowed for broad "all repos" reach. Entered by user, stored on-device; no OAuth flow/server callback. github.com first. See [03](03-integration-requirements.md#github-connector--int-gh). |
+| OQ-7 | ✅ **RESOLVED — Jira Atlassian API token + email (Basic)** (2026-06-07). | Stored on-device; no OAuth flow. Jira Cloud first; web routes via the proxy (no browser CORS). See [03](03-integration-requirements.md#jira-connector--int-jira). |
 | OQ-8 | **Polling vs webhooks** for freshness. | Client-side polling is decided; webhooks are impractical without a stateful server. Background sync while apps are closed is limited (accepted trade-off). |
 | OQ-8a | **Web CORS** — which provider endpoints work browser-direct vs require the proxy, and is **transient token pass-through** via our proxy acceptable? | Jira likely needs proxying; GitHub may allow some direct calls. Mobile calls direct (no proxy). |
 | OQ-9 | **Write-back** to GitHub/Jira (e.g. close/resolve) — in or out? | Currently out of initial scope (FR-INT-11). Confirm. |
